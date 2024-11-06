@@ -3,32 +3,6 @@ import numpy as np
 from constants import Labels
 
 
-def join_mask_images(images):
-    affine = images[0].affine
-    shape = images[0].shape
-    for image in images[1:]:
-        if np.any(affine != image.affine) or image.shape != shape:
-            raise RuntimeError("Images you want to join do not have the same shape or affine matrix")
-
-    image_data = [image.mask for image in images]
-    stacked_image = np.stack(image_data)
-
-    same = np.all(stacked_image == stacked_image[0], axis=0)
-
-    min_label = np.min(stacked_image, axis=0)
-    is_valid = np.all(np.logical_or(stacked_image == min_label, stacked_image == Labels.UNKNOWN), axis=0)
-
-    joined_image = np.ones(shape) * Labels.UNPROCESSED
-    joined_image = np.where(is_valid, min_label, joined_image)
-    is_invalid = is_valid==False
-    if np.sum(is_invalid) > 0:
-        print("voxels with different values that are not unknown are set to unknown")
-        joined_image = np.where(is_invalid, Labels.UNKNOWN, joined_image)
-
-    new_image = SparseMaskImage(shape, affine)
-    new_image.set_mask(joined_image)
-    return new_image
-
 
 class SparseMaskImage:
     def __init__(self, shape, affine):
@@ -40,7 +14,7 @@ class SparseMaskImage:
     @property
     def mask(self):
         if np.any(self._mask == Labels.UNPROCESSED):
-            raise RuntimeError("All voxels need to be set. This error can be prevented by setting ever")
+            raise RuntimeError("All voxels need to be set. This error can be prevented by setting every unprocessed voxel to unknown")
         return self._mask.reshape(self._shape)
 
     @property

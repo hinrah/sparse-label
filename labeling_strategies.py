@@ -21,14 +21,16 @@ class LabelVoxelsBasedOnProjectionToCrossSection:
         self._cross_section = cross_section
 
     def apply(self, points):
-        labels = np.zeros((points.shape[0], 1))
-        for i, point in enumerate(points):
-            if self._cross_section.is_projected_inside_lumen(point):
+        max_contour_distance = np.max(np.linalg.norm(self._cross_section.all_contour_points - self._cross_section.plane_center, axis=1))*1.1
+        point_distance = np.linalg.norm(points - self._cross_section.plane_center, axis=1)
+        potential_foreground = (point_distance < max_contour_distance).nonzero()[0]
+
+        labels = np.ones((points.shape[0], 1))*Labels.BACKGROUND
+        for i in potential_foreground:
+            if self._cross_section.is_projected_inside_lumen(points[i]):
                 labels[i] = Labels.LUMEN
-            elif self._cross_section.is_projected_inside_wall(point):
+            elif self._cross_section.is_projected_inside_wall(points[i]):
                 labels[i] = Labels.WALL
-            else:
-                labels[i] = Labels.BACKGROUND
         return labels
 
 
@@ -40,11 +42,10 @@ class LabelUnknownCrosssSectionBackground:
         self._initialize_edge_points()
 
     def _initialize_edge_points(self):
-        good_edge_points = []
-        bad_edge_points = []
+        good_edge_points = [np.zeros((0,3))]
+        bad_edge_points = [np.zeros((0,3))]
         for start_node, end_node in self._centerline.edges():
             edge_points = np.array(self._centerline[start_node][end_node]['skeletons'])
-            edge_points[:, :2] *= -1
             max_edgepoint_distance = np.max(np.linalg.norm(edge_points[:-1]-edge_points[1:], axis=1))
             distances = self._cross_section.distance_to_plane(edge_points)
             plane_points = edge_points[np.nonzero(distances < max_edgepoint_distance)[0]]
@@ -59,6 +60,11 @@ class LabelUnknownCrosssSectionBackground:
 
         self._bad_edge_points = cKDTree(np.vstack(bad_edge_points))
         self._good_edge_points = cKDTree(np.vstack(good_edge_points))
+
+    def join_point_clouds(self, point_clouds):
+        if len(point_clouds) == 0:
+            return np.zeros((0,3))
+
 
     def apply(self, points):
         good_distances, _ = self._good_edge_points.query(points)
@@ -79,7 +85,6 @@ class LabelCenterline:
             edge_points.extend(self._centerline[start_node][end_node]['skeletons'])
 
         edge_points = np.array(edge_points)
-        edge_points[:, :2] *= -1
         edge_points = cKDTree(edge_points)
         distance, _ = edge_points.query(points)
 

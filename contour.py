@@ -15,3 +15,7 @@ class Contour:
     @property
     def polygon(self):
         return self._polygon
+
+    @property
+    def points(self):
+        return self._points
