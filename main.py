@@ -1,61 +1,10 @@
-from multiprocessing import Pool
-
-from tqdm import tqdm
-
-import numpy as np
-
 from case import CaseLoader
+from dataset_characteristics_extraction import get_max_voxel_size, get_min_lumen_centerline_distance, get_max_contour_centerline_distance
 from label_creator import DefaultLabelCreator
 
 import argparse
-from copy import deepcopy
 
-
-class Processor:
-    def __init__(self, label_creator, case_loader):
-        self._case_loader = case_loader
-        self._label_creator = label_creator
-
-    def _process_one_item_parallel(self, case):
-        label_creator = deepcopy(self._label_creator)
-        label_creator.create_label(case)
-
-    def process(self):
-        for i, case in tqdm(enumerate(self._case_loader)):
-            self._label_creator.create_label(case)
-
-    def process_parallel(self, num_threads=4):
-        with Pool(processes=num_threads) as pool, tqdm(total=len(self._case_loader)) as pbar:
-            for _ in pool.imap(self._process_one_item_parallel, self._case_loader):
-                pbar.update()
-                pbar.refresh()
-
-
-def get_max_voxel_size(cases):
-    max_voxel_size = 0
-    for case in cases:
-        max_voxel_size = max(max_voxel_size, max(case.voxel_size))
-    return max_voxel_size
-
-
-def get_min_lumen_centerline_distance(cases):
-    min_lumen_centerline_distances = []
-    for case in cases:
-        try:
-            min_lumen_centerline_distances.append(case.min_lumen_centerline_distance())
-        except ValueError:
-            continue
-    return np.percentile(min_lumen_centerline_distances, 5)
-
-
-def get_max_contour_centerline_distance(cases):
-    max_contour_centerline_distances = []
-    for case in cases:
-        try:
-            max_contour_centerline_distances.append(case.max_contour_centerline_distance())
-        except ValueError:
-            continue
-    return max(max_contour_centerline_distances)
+from processor import Processor
 
 
 def create_sparse_label():
@@ -80,7 +29,7 @@ def create_sparse_label():
         args.cr = max(get_min_lumen_centerline_distance(case_loader), max_voxel_size)
 
     if not args.vr:
-        args.vr = get_max_contour_centerline_distance(case_loader)*1.2
+        args.vr = get_max_contour_centerline_distance(case_loader) * 1.2
 
     label_creator = DefaultLabelCreator(args.t, args.cr, args.vr)
     processor = Processor(label_creator, case_loader)

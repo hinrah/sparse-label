@@ -18,9 +18,8 @@ class Case:
         self.image = None
         self.cross_sections = []
         self.centerline = None
-        self._load()
 
-    def _load(self):
+    def load(self):
         self._load_image()
         self._load_cross_sections()
         self._load_centerline()
@@ -44,7 +43,7 @@ class Case:
         return contours
 
     def _load_image(self):
-        file_name = self.case_id + "_0000" + Endings.NIFTI
+        file_name = self.case_id + Endings.CHANNEL_ZERO + Endings.NIFTI
         image_path = os.path.join(data_raw, self.dataset, Folders.IMAGES, file_name)
         self.image = nib.load(image_path)
 
@@ -77,7 +76,7 @@ class Case:
         return min(distances)
 
     def max_contour_centerline_distance(self):
-        center_points = np.vstack([cross_section.plane_center for cross_section in self.cross_sections])# = self._all_centerline_points()
+        center_points = np.vstack([cross_section.plane_center for cross_section in self.cross_sections])
         contour_points = self._all_contour_points()
 
         if not center_points.size or not contour_points.size:
@@ -141,7 +140,9 @@ class CaseLoader:
         if self.index < len(self.case_ids):
             case_id = self.case_ids[self.index]
             self.index += 1
-            return Case(case_id, self._dataset)
+            case = Case(case_id, self._dataset)
+            case.load()
+            return case
         else:
             raise StopIteration
 
