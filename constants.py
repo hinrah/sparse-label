@@ -25,7 +25,7 @@ class Contours:
 data_raw = os.environ.get("sparseVesselMasks_raw")
 
 if data_raw is None:
-    print("data_raw is not defined nnUNet_raw is now used.")
+    print("sparseVesselMasks_raw is not defined nnUNet_raw is now used.")
     data_raw = os.environ.get('nnUNet_raw')
     if data_raw is None:
         print("nnUNet_raw is not defined as well. Sparse vessel masks can not be created.")

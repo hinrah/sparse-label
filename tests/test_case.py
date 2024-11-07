@@ -1,4 +1,4 @@
-import json
+import os
 from unittest import TestCase
 from unittest.mock import patch, mock_open, MagicMock
 
@@ -269,18 +269,16 @@ class TestCase(TestCase):
         expected = np.array([[0, 0, 0], [1, 1, 1], [2, 2, 2], [3, 3, 3]])
         np.testing.assert_array_equal(result, expected)
 
+    @patch('case.data_raw')
     @patch('case.nib.save')
     @patch('case.nib.Nifti1Image')
-    @patch('case.os.path.join', return_value='mocked_path')
-    def test_save_label(self, mock_join, mock_nifti1image, mock_save):
+    def test_save_label(self, mock_nifti1image, mock_save, mock_data_raw):
         case = Case('test_case', 'test_dataset')
         case.image = MagicMock()
         voxel_mask = np.array([[0, 1], [2, 3]])
 
         case.save_label(voxel_mask)
 
-        mock_join.assert_called_once_with(data_raw, 'test_dataset', Folders.LABELS, 'test_case' + Endings.NIFTI)
-
         np.testing.assert_array_equal(mock_nifti1image.call_args[0][0], np.astype(voxel_mask, np.int16))
         self.assertEqual(mock_nifti1image.call_args[0][1], case.image.affine)
-        mock_save.assert_called_once_with(mock_nifti1image.return_value, 'mocked_path')
+        mock_save.assert_called_once_with(mock_nifti1image.return_value, os.path.join(mock_data_raw, 'test_dataset', Folders.LABELS, 'test_case' + Endings.NIFTI))
