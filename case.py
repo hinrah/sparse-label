@@ -111,13 +111,6 @@ class Case:
             centerline_points.append(self.centerline[start][end]['skeletons'])
         return np.vstack(centerline_points)
 
-    def save_label(self, voxel_mask):
-        file_name = self.case_id + Endings.NIFTI
-        labels_path = os.path.join(data_raw, self.dataset, Folders.LABELS)
-        out_image = nib.Nifti1Image(np.astype(voxel_mask, np.int16), self.affine)
-        os.makedirs(labels_path, exist_ok=True)
-        nib.save(out_image, os.path.join(labels_path, file_name))
-
 
 class CaseLoader:
     def __init__(self, dataset):

@@ -5,6 +5,17 @@ from constants import Labels
 from scipy.spatial import cKDTree
 
 
+class LabelCrossSections:
+    def __init__(self, _distance_threshold):
+        self._distance_threshold = _distance_threshold
+
+    def apply(self, mask, case):
+        for cross_section in case.cross_sections:
+            label_cross_section = LabelCrossSection(cross_section, self._distance_threshold, case.centerline)
+            label_cross_section.apply(mask)
+
+
+
 class LabelCrossSection:
     def __init__(self, cross_section, distance_threshold, centerline):
         self._cross_section = cross_section
@@ -60,21 +71,17 @@ class LabelCrossSection:
 
         mask.set_sparse_mask(label_idx, labels)
 
-
-
-
 class LabelCenterline:
-    def __init__(self, centerline, radius, label_to_create):
-        self._centerline = centerline
+    def __init__(self, radius, label_to_create):
         self._radius = radius
         if label_to_create not in [Labels.LUMEN, Labels.BACKGROUND]:
             raise RuntimeError("This strategy can only create lumen or background labels")
         self._label_to_create = label_to_create
 
-    def apply(self, mask):
+    def apply(self, mask, case):
         edge_points = []
-        for start_node, end_node in self._centerline.edges():
-            edge_points.extend(self._centerline[start_node][end_node]['skeletons'])
+        for start_node, end_node in case.centerline.edges():
+            edge_points.extend(case.centerline[start_node][end_node]['skeletons'])
 
         edge_points = np.array(edge_points)
         edge_points = cKDTree(edge_points)

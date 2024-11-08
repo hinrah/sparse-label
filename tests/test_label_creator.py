@@ -1,11 +1,13 @@
-import shutil
 from unittest import TestCase
 import os
 import nibabel as nib
 import numpy as np
 from unittest.mock import patch
 from case import Case
-from label_creator import DefaultLabelCreator
+from constants import Labels
+from label_creator import LabelCreator
+from labeling_strategies import LabelCrossSections, LabelCenterline
+
 
 class TestDefaultLabelCreator(TestCase):
 
@@ -13,8 +15,11 @@ class TestDefaultLabelCreator(TestCase):
         self.test_dir = os.path.dirname(os.path.abspath(__file__))
 
     @patch("case.data_raw", new=os.path.join(os.path.dirname(os.path.abspath(__file__)), "test_data"))
+    @patch("label_creator.data_raw", new=os.path.join(os.path.dirname(os.path.abspath(__file__)), "test_data"))
     def test_create_label(self):
-        label_creator = DefaultLabelCreator(0.6, 0.6, 15)
+        strategies = [LabelCrossSections(0.6/2), LabelCenterline(0.6, Labels.LUMEN), LabelCenterline(15, Labels.BACKGROUND)]
+        label_creator = LabelCreator(strategies)
+
         test_case = Case("test", "Dataset001_test")
         test_case.load()
 
@@ -26,4 +31,4 @@ class TestDefaultLabelCreator(TestCase):
         np.testing.assert_array_equal(true_labels.affine, expected_labels.affine)
 
     def tearDown(self) -> None:
-        shutil.rmtree(os.path.join(self.test_dir, "test_data", "Dataset001_test", "labels"))
+        pass#shutil.rmtree(os.path.join(self.test_dir, "test_data", "Dataset001_test", "labels"))
