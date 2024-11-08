@@ -13,9 +13,14 @@ class SparseMaskImage:
 
     @property
     def mask(self):
-        if np.any(self._mask == Labels.UNPROCESSED):
-            raise RuntimeError("All voxels need to be set. This error can be prevented by setting every unprocessed voxel to unknown")
-        return self._mask.reshape(self._shape)
+        out = self._mask.reshape(self._shape)
+        return np.where(out == Labels.UNPROCESSED, Labels.UNKNOWN, out)
+
+    def set_sparse_mask(self, idx, label):
+        label = np.where(label == Labels.UNPROCESSED, self._mask[idx], label)  # needed to make ensure unprocessed labels are not overwriting processed labels
+        self._mask[idx] = np.where(self._mask[idx] == Labels.UNPROCESSED, label, self._mask[idx])
+        label = np.where(self._mask[idx] == Labels.UNKNOWN, Labels.UNKNOWN, label)
+        self._mask[idx] = np.where(self._mask[idx] == label, label, Labels.UNKNOWN)
 
     @property
     def affine(self):
@@ -42,17 +47,13 @@ class SparseMaskImage:
             self._voxel_center_points = self._compute_voxel_center_points()
         return self._voxel_center_points
 
-    def voxel_by_label(self, label):
-        return np.nonzero(self._mask == label)[0]
-
-    def label_points_with_label(self, strategy, label):
-        points_to_label = self.voxel_center_points[self.voxel_by_label(label), :]
-        self._mask[self.voxel_by_label(label)] = strategy.apply(points_to_label)
-
     def set_mask(self, mask):
-        if mask.shape != self._shape:
+        mask = mask.reshape((-1, 1))
+
+        if mask.shape != self._mask.shape:
             raise RuntimeError("The mask does not fit the mask shape")
-        self._mask = mask.reshape((-1, 1))
+
+        self.set_sparse_mask(range(mask.size), mask)
 
 
 def homogenous(points):

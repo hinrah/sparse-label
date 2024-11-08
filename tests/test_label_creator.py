@@ -25,4 +25,5 @@ class TestDefaultLabelCreator(TestCase):
         np.testing.assert_array_equal(true_labels.get_fdata(), expected_labels.get_fdata())
         np.testing.assert_array_equal(true_labels.affine, expected_labels.affine)
 
+    def tearDown(self) -> None:
         shutil.rmtree(os.path.join(self.test_dir, "test_data", "Dataset001_test", "labels"))
