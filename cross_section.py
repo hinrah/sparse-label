@@ -57,6 +57,12 @@ class CrossSection:
         projected_point = self.transform_points_to_plane_coordinates(point)[0]
         return self._lumen_contour.contains_point(projected_point)
 
+    def projected_inside_lumen(self, points):
+        return np.array([self.is_projected_inside_lumen(point) for point in points]).reshape(-1, 1)
+
+    def projected_inside_wall(self, points):
+        return np.array([self.is_projected_inside_wall(point) for point in points]).reshape(-1,1)
+
     def is_projected_inside_wall(self, point):
         if self._outer_wall_contour is None:
             return False
