@@ -22,6 +22,7 @@ def create_sparse_label():
                         help="[OPTIONAL] vessel radius. Everything that is further away from the centerlines is considered as background. If this is "
                              "not set, it is calculated as 1.2 times the maximum distance of all contour points to there cross-section center")
     parser.add_argument('-n', default=1, type=int, help="[OPTIONAL] number of processes. If not set this will run synchronous on one process.")
+    parser.add_argument('--wall', action=argparse.BooleanOptionalAction)
     args = parser.parse_args()
 
     case_loader = CaseLoader(args.d)
@@ -36,7 +37,7 @@ def create_sparse_label():
     if not args.vr:
         args.vr = get_max_contour_centerline_distance(case_loader) * 1.2
 
-    strategies = [LabelCrossSections(args.t/2), LabelCenterline(args.cr, Labels.LUMEN), LabelCenterline(args.vr, Labels.BACKGROUND)]
+    strategies = [LabelCrossSections(args.t/2, with_wall=args.wall), LabelCenterline(args.cr, Labels.LUMEN), LabelCenterline(args.vr, Labels.BACKGROUND)]
 
     label_creator = LabelCreator(strategies)
     processor = Processor(label_creator, case_loader)

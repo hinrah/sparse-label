@@ -1,4 +1,8 @@
 {
+  "empty": {
+    "outer_contour": [],
+    "inner_contour": []
+  },
   "LEFT_1": {
     "outer_contour": [
       [

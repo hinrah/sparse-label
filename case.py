@@ -11,6 +11,29 @@ from constants import Contours, Endings, data_raw, Folders
 from cross_section import CrossSection
 
 
+class CrossSectionReader:
+    def __init__(self, raw_cross_section):
+        self._raw_cross_section = raw_cross_section
+
+    @property
+    def lumen_contour_points(self):
+        return self._read_points(Contours.INNER)
+
+    @property
+    def wall_contour_points(self):
+        return self._read_points(Contours.OUTER)
+
+    def _read_points(self, key):
+        if self._raw_cross_section.get(key) is None or len(self._raw_cross_section.get(key)) == 0:
+            return None
+        points = np.array(self._raw_cross_section[key])
+        if points.shape[0] < 3:
+            raise ValueError("A contour with less than three points has no surface and cannot be processed")
+        if points.shape[1] != 3:
+            raise ValueError("The contour points need to be in 3D world coordinates")
+        return points
+
+
 class Case:
     def __init__(self, case_id, dataset):
         self.case_id = case_id
@@ -28,12 +51,11 @@ class Case:
         raw_cross_sections = self._load_raw_cross_sections()
         self.cross_sections = []
         for raw_cross_section in raw_cross_sections.values():
-            if not Contours.INNER in raw_cross_section.keys() or not Contours.OUTER in raw_cross_section.keys():
-                print("Cross-section does not have both contours and is ignored.")
+            reader = CrossSectionReader(raw_cross_section)
+            if reader.lumen_contour_points is None:
+                print("Cross-section does not have lumen contour.")
                 continue
-            inner_contour_points = np.array(raw_cross_section[Contours.INNER])
-            outer_contour_points = np.array(raw_cross_section[Contours.OUTER])
-            self.cross_sections.append(CrossSection(inner_contour_points, outer_contour_points))
+            self.cross_sections.append(CrossSection(reader.lumen_contour_points, reader.wall_contour_points))
 
     def _load_raw_cross_sections(self):
         file_name = self.case_id + Endings.JSON
@@ -86,23 +108,15 @@ class Case:
         return max(distances)
 
     def _all_contour_points(self):
-        raw_cross_sections = self._load_raw_cross_sections()
         contour_points = [np.zeros((0, 3))]
-        for raw_cross_section in raw_cross_sections.values():
-            if not Contours.INNER in raw_cross_section.keys() or not Contours.OUTER in raw_cross_section.keys():
-                print("Cross-section does not have both contours and is ignored.")
-                continue
-            contour_points.append(np.array(raw_cross_section[Contours.INNER]))
-            contour_points.append(np.array(raw_cross_section[Contours.OUTER]))
+        for cross_section in self.cross_sections:
+            contour_points.append(cross_section.all_contour_points)
         return np.vstack(contour_points)
 
     def _all_lumen_points(self):
-        raw_cross_sections = self._load_raw_cross_sections()
         lumen_points = [np.zeros((0, 3))]
-        for raw_cross_section in raw_cross_sections.values():
-            if not Contours.INNER in raw_cross_section.keys():
-                continue
-            lumen_points.append(np.array(raw_cross_section[Contours.INNER]))
+        for cross_section in self.cross_sections:
+            lumen_points.append(cross_section.lumen_points)
         return np.vstack(lumen_points)
 
     def _all_centerline_points(self):

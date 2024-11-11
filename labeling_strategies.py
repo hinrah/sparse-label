@@ -3,12 +3,14 @@ import numpy as np
 from constants import Labels
 from scipy.spatial import cKDTree
 
+from cross_section import ContourDoesNotExistError
 from cross_section_centerline import CrossSectionCenterline
 
 
 class LabelCrossSection:
-    def __init__(self, distance_threshold, cross_section, centerline, mask):
+    def __init__(self, distance_threshold, with_wall, cross_section, centerline, mask):
         self._distance_threshold = distance_threshold
+        self._with_wall = with_wall
         self._cross_section = cross_section
         self._mask = mask
         self._centerline = CrossSectionCenterline(centerline, cross_section)
@@ -16,6 +18,26 @@ class LabelCrossSection:
         self.__labels = None
         self.__label_points = None
         self.__potential_foreground_idx = None
+
+    def apply(self):
+        try:
+            self._label_foreground()
+            self._label_background()
+            self._mask.set_sparse_mask(self._label_idx, self._labels)
+        except ContourDoesNotExistError:
+            return
+
+    def _label_foreground(self):
+        potential_foreground_points = self._label_points[self._potential_foreground_idx]
+        if potential_foreground_points.size == 0:
+            raise ContourDoesNotExistError
+        if self._with_wall:
+            self._labels[self._potential_foreground_idx] = np.where(self._cross_section.projected_inside_wall(potential_foreground_points), Labels.WALL, self._labels[self._potential_foreground_idx])
+        self._labels[self._potential_foreground_idx] = np.where(self._cross_section.projected_inside_lumen(potential_foreground_points), Labels.LUMEN, self._labels[self._potential_foreground_idx])
+
+    def _label_background(self):
+        labels_with_background = np.where(self._labels == Labels.UNPROCESSED, Labels.BACKGROUND, self._labels)
+        self.__labels = np.where(self._centerline.belong_to_centerline(self._label_points), labels_with_background, self._labels)
 
     @property
     def _label_idx(self):
@@ -35,23 +57,6 @@ class LabelCrossSection:
         if self.__label_points is None:
             self.__label_points = self._mask.voxel_center_points[self._label_idx]
         return self.__label_points
-
-    def apply(self):
-        self._label_foreground()
-        self._label_background()
-        self._mask.set_sparse_mask(self._label_idx, self._labels)
-
-    def _label_foreground(self):
-        potential_foreground_points = self._label_points[self._potential_foreground_idx]
-        if potential_foreground_points.size == 0:
-            return
-
-        self._labels[self._potential_foreground_idx] = np.where(self._cross_section.projected_inside_wall(potential_foreground_points), Labels.WALL, self._labels[self._potential_foreground_idx])
-        self._labels[self._potential_foreground_idx] = np.where(self._cross_section.projected_inside_lumen(potential_foreground_points), Labels.LUMEN, self._labels[self._potential_foreground_idx])
-
-    def _label_background(self):
-        labels_with_background = np.where(self._labels == Labels.UNPROCESSED, Labels.BACKGROUND, self._labels)
-        self.__labels = np.where(self._centerline.belong_to_centerline(self._label_points), labels_with_background, self._labels)
 
     @property
     def _potential_foreground_idx(self):
@@ -73,15 +78,16 @@ class LabelCrossSection:
 
 
 class LabelCrossSections:
-    def __init__(self, distance_threshold):
+    def __init__(self, distance_threshold, with_wall=True):
         self._distance_threshold = distance_threshold
+        self._with_wall = with_wall
 
     def apply(self, mask, case):
         for cross_section in case.cross_sections:
             self._label_cross_section(mask, cross_section, case.centerline)
 
     def _label_cross_section(self, mask, cross_section, centerline):
-        strategy = LabelCrossSection(self._distance_threshold, cross_section, centerline, mask)
+        strategy = LabelCrossSection(self._distance_threshold, self._with_wall, cross_section, centerline, mask)
         strategy.apply()
 
 

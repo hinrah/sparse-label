@@ -1,3 +1,4 @@
+import shutil
 from unittest import TestCase
 import os
 import nibabel as nib
@@ -16,19 +17,30 @@ class TestDefaultLabelCreator(TestCase):
 
     @patch("case.data_raw", new=os.path.join(os.path.dirname(os.path.abspath(__file__)), "test_data"))
     @patch("label_creator.data_raw", new=os.path.join(os.path.dirname(os.path.abspath(__file__)), "test_data"))
-    def test_create_label(self):
-        strategies = [LabelCrossSections(0.6/2), LabelCenterline(0.6, Labels.LUMEN), LabelCenterline(15, Labels.BACKGROUND)]
-        label_creator = LabelCreator(strategies)
+    def test_create_label_with_wall(self):
+        all_with_wall = [LabelCrossSections(0.6/2, with_wall=True), LabelCenterline(0.6, Labels.LUMEN), LabelCenterline(15, Labels.BACKGROUND)]
+        all_without_wall = [LabelCrossSections(0.6/2, with_wall=False), LabelCenterline(0.6, Labels.LUMEN), LabelCenterline(15, Labels.BACKGROUND)]
 
-        test_case = Case("test", "Dataset001_test")
-        test_case.load()
+        all_with_wall_label = nib.load(os.path.join(self.test_dir, "test_data", "Dataset001_test", "expected_labels", "test_with_wall.nii.gz"))
+        all_without_wall_label = nib.load(os.path.join(self.test_dir, "test_data", "Dataset001_test", "expected_labels", "test_without_wall.nii.gz"))
 
-        label_creator.create_label(test_case)
+        tests = [["all with wall", all_with_wall, all_with_wall_label],
+                 ["all without wall", all_without_wall, all_without_wall_label],
+                 ["all commutative", all_with_wall[::-1], all_with_wall_label]]
 
-        expected_labels = nib.load(os.path.join(self.test_dir, "test_data", "Dataset001_test", "expected_labels", "test.nii.gz"))
-        true_labels = nib.load(os.path.join(self.test_dir, "test_data", "Dataset001_test", "labels", "test.nii.gz"))
-        np.testing.assert_array_equal(true_labels.get_fdata(), expected_labels.get_fdata())
-        np.testing.assert_array_equal(true_labels.affine, expected_labels.affine)
+        for name, strategies, expected_result in tests:
+            with self.subTest(name):
+
+                label_creator = LabelCreator(strategies)
+
+                test_case = Case("test", "Dataset001_test")
+                test_case.load()
+
+                label_creator.create_label(test_case)
+
+                true_labels = nib.load(os.path.join(self.test_dir, "test_data", "Dataset001_test", "labels", "test.nii.gz"))
+                np.testing.assert_array_equal(true_labels.get_fdata(), expected_result.get_fdata())
+                np.testing.assert_array_equal(true_labels.affine, expected_result.affine)
 
     def tearDown(self) -> None:
-        pass#shutil.rmtree(os.path.join(self.test_dir, "test_data", "Dataset001_test", "labels"))
+        shutil.rmtree(os.path.join(self.test_dir, "test_data", "Dataset001_test", "labels"))

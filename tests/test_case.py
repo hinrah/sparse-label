@@ -50,15 +50,18 @@ class TestCase(TestCase):
     def test_load_cross_sections_with_missing_contours(self, mock_load_raw_cross_sections):
         mock_load_raw_cross_sections.return_value = {
             "section1": {
-                Contours.INNER: [[0, 0, 0], [1, 1, 1]]
+                Contours.INNER: [[0, 0, 0], [1, 1, 1], [2, 2, 2]]
             },
             "section2": {
-                Contours.OUTER: [[6, 6, 6], [7, 7, 7]]
+                Contours.OUTER: [[6, 6, 6], [7, 7, 7], [8, 8, 8]]
             }
         }
+
         case = Case('test_case', 'test_dataset')
         case._load_cross_sections()
-        self.assertEqual(len(case.cross_sections), 0)
+
+        self.assertEqual(1, len(case.cross_sections))
+        np.testing.assert_array_equal(np.array([[0, 0, 0], [1, 1, 1], [2, 2, 2]]), case.cross_sections[0].all_contour_points)
 
     @patch.object(Case, '_load_raw_cross_sections')
     def test_load_cross_sections_with_empty_data(self, mock_load_raw_cross_sections):
@@ -182,73 +185,35 @@ class TestCase(TestCase):
                 with self.assertRaises(ValueError):
                     case.max_contour_centerline_distance()
 
-    @patch.object(Case, '_load_raw_cross_sections')
-    def test_all_contour_points_with_valid_data(self, mock_load_raw_cross_sections):
-        mock_load_raw_cross_sections.return_value = {
-            "section1": {
-                Contours.INNER: [[0, 0, 0], [1, 1, 1]],
-                Contours.OUTER: [[2, 2, 2], [3, 3, 3]]
-            },
-            "section2": {
-                Contours.INNER: [[4, 4, 4], [5, 5, 5]],
-                Contours.OUTER: [[6, 6, 6], [7, 7, 7]]
-            }
-        }
+    def test_all_contour_points_with_valid_data(self):
+        cross_section_1 = MagicMock(all_contour_points=np.array([[0, 0, 0], [1, 1, 1]]))
+        cross_section_2 = MagicMock(all_contour_points=np.array([[2, 2, 2]]))
         case = Case('test_case', 'test_dataset')
+        case.cross_sections = [cross_section_1, cross_section_2]
+
         result = case._all_contour_points()
-        expected = np.array([[0, 0, 0], [1, 1, 1], [2, 2, 2], [3, 3, 3], [4, 4, 4], [5, 5, 5], [6, 6, 6], [7, 7, 7]])
+
+        expected = np.array([[0, 0, 0], [1, 1, 1], [2, 2, 2]])
         np.testing.assert_array_equal(result, expected)
 
-    @patch.object(Case, '_load_raw_cross_sections')
-    def test_all_contour_points_with_missing_contours(self, mock_load_raw_cross_sections):
-        mock_load_raw_cross_sections.return_value = {
-            "section1": {
-                Contours.INNER: [[0, 0, 0], [1, 1, 1]]
-            },
-            "section2": {
-                Contours.OUTER: [[6, 6, 6], [7, 7, 7]]
-            }
-        }
+    def test_all_contour_points_with_empty_data(self):
         case = Case('test_case', 'test_dataset')
+        case.cross_sections = []
+
         result = case._all_contour_points()
+
         expected = np.zeros((0, 3))
         np.testing.assert_array_equal(result, expected)
 
-    @patch.object(Case, '_load_raw_cross_sections')
-    def test_all_contour_points_with_empty_data(self, mock_load_raw_cross_sections):
-        mock_load_raw_cross_sections.return_value = {}
+    def test_all_lumen_points_with_valid_data(self):
+        cross_section_1 = MagicMock(lumen_points=np.array([[0, 0, 0], [1, 1, 1]]))
+        cross_section_2 = MagicMock(lumen_points=np.array([[2, 2, 2]]))
         case = Case('test_case', 'test_dataset')
-        result = case._all_contour_points()
-        expected = np.zeros((0, 3))
-        np.testing.assert_array_equal(result, expected)
-    @patch.object(Case, '_load_raw_cross_sections')
-    def test_all_lumen_points_with_valid_data(self, mock_load_raw_cross_sections):
-        mock_load_raw_cross_sections.return_value = {
-            "section1": {
-                Contours.INNER: [[0, 0, 0], [1, 1, 1]]
-            },
-            "section2": {
-                Contours.INNER: [[2, 2, 2], [3, 3, 3]]
-            }
-        }
-        case = Case('test_case', 'test_dataset')
-        result = case._all_lumen_points()
-        expected = np.array([[0, 0, 0], [1, 1, 1], [2, 2, 2], [3, 3, 3]])
-        np.testing.assert_array_equal(result, expected)
+        case.cross_sections = [cross_section_1, cross_section_2]
 
-    @patch.object(Case, '_load_raw_cross_sections')
-    def test_all_lumen_points_with_missing_inner_contour(self, mock_load_raw_cross_sections):
-        mock_load_raw_cross_sections.return_value = {
-            "section1": {
-                Contours.OUTER: [[0, 0, 0], [1, 1, 1]]
-            },
-            "section2": {
-                Contours.INNER: [[2, 2, 2], [3, 3, 3]]
-            }
-        }
-        case = Case('test_case', 'test_dataset')
         result = case._all_lumen_points()
-        expected = np.array([[2, 2, 2], [3, 3, 3]])
+
+        expected = np.array([[0, 0, 0], [1, 1, 1], [2, 2, 2]])
         np.testing.assert_array_equal(result, expected)
 
     def test_all_centerline_points_with_valid_data(self):

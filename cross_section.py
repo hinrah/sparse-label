@@ -25,6 +25,10 @@ class CrossSection:
         else:
             return np.vstack((self._lumen_contour_points, self._outer_wall_contour_points))
 
+    @property
+    def lumen_points(self):
+        return self._lumen_contour_points
+
     def _create_pca(self, lumen_contour_points, outer_wall_contour_points):
         if outer_wall_contour_points is None:
             points = lumen_contour_points
@@ -65,6 +69,9 @@ class CrossSection:
 
     def is_projected_inside_wall(self, point):
         if self._outer_wall_contour is None:
-            return False
+            raise ContourDoesNotExistError
         projected_point = self.transform_points_to_plane_coordinates(point)[0]
         return self._outer_wall_contour.contains_point(projected_point)
+
+class ContourDoesNotExistError(AttributeError):
+    pass
