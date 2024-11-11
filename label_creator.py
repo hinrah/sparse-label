@@ -19,7 +19,7 @@ class LabelCreator:
     def __init__(self, strategies):
         self._strategies = strategies
 
-    def create_label(self, case):
+    def apply(self, case):
         mask = SparseMaskImage(case.image_shape, case.affine)
         for strategy in self._strategies:
             strategy.apply(mask, case)

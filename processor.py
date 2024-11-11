@@ -5,17 +5,17 @@ from tqdm import tqdm
 
 
 class Processor:
-    def __init__(self, label_creator, case_loader):
+    def __init__(self, case_handler, case_loader):
         self._case_loader = case_loader
-        self._label_creator = label_creator
+        self._case_handler = case_handler
 
     def _process_one_item_parallel(self, case):
-        label_creator = deepcopy(self._label_creator)
-        label_creator.create_label(case)
+        case_handler = deepcopy(self._case_handler)
+        case_handler.apply(case)
 
     def process(self):
-        for i, case in tqdm(enumerate(self._case_loader)):
-            self._label_creator.create_label(case)
+        for i, case in enumerate(self._case_loader):
+            self._case_handler.apply(case)
 
     def process_parallel(self, num_threads=4):
         with Pool(processes=num_threads) as pool, tqdm(total=len(self._case_loader)) as pbar:

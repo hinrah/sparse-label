@@ -5,7 +5,8 @@ from contour import Contour
 
 
 class CrossSection:
-    def __init__(self, lumen_contour, outer_wall_contour=None):
+    def __init__(self, identifier, lumen_contour, outer_wall_contour=None):
+        self.identifier = identifier
         self._lumen_contour_points = lumen_contour
         self._outer_wall_contour_points = outer_wall_contour
         self._pca = self._create_pca(lumen_contour, outer_wall_contour)
@@ -13,10 +14,13 @@ class CrossSection:
         self._lumen_contour = Contour(self.transform_points_to_plane_coordinates(lumen_contour))
         if outer_wall_contour is not None:
             self._outer_wall_contour = Contour(self.transform_points_to_plane_coordinates(outer_wall_contour))
-            if not self._outer_wall_contour.contains(self._lumen_contour.polygon):
-                raise RuntimeError("lumen contour needs to be inside wall contour")
         else:
             self._outer_wall_contour = None
+
+    def lumen_is_inside_wall(self):
+        if self._outer_wall_contour is None:
+            raise ContourDoesNotExistError
+        return self._outer_wall_contour.contains(self._lumen_contour.polygon)
 
     @property
     def all_contour_points(self):

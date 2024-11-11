@@ -1,7 +1,10 @@
+from check_datasets import CenterlineInsideLumen, LumenInsideWall, NumArteries
 from case import CaseLoader
 from constants import Labels
 from dataset_characteristics_extraction import get_max_voxel_size, get_min_lumen_centerline_distance, get_max_contour_centerline_distance
+from dataset_tester import DatasetTester
 from label_creator import LabelCreator
+from logging_config import logger
 
 import argparse
 
@@ -37,7 +40,7 @@ def create_sparse_label():
     if not args.vr:
         args.vr = get_max_contour_centerline_distance(case_loader) * 1.2
 
-    strategies = [LabelCrossSections(args.t/2, with_wall=args.wall), LabelCenterline(args.cr, Labels.LUMEN), LabelCenterline(args.vr, Labels.BACKGROUND)]
+    strategies = [LabelCrossSections(args.t / 2, with_wall=args.wall), LabelCenterline(args.cr, Labels.LUMEN), LabelCenterline(args.vr, Labels.BACKGROUND)]
 
     label_creator = LabelCreator(strategies)
     processor = Processor(label_creator, case_loader)
@@ -47,5 +50,28 @@ def create_sparse_label():
         processor.process()
 
 
+def check_dataset():
+    logger.setLevel("WARNING")
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-d', help="[REQUIRED] dataset name (folder name) for which the label creation is performed.")
+    parser.add_argument('-n', default=1, type=int, help="[OPTIONAL] number of processes. If not set this will run synchronous on one process.")
+    parser.add_argument('-na', default=1, type=int, help="[OPTIONAL] number of arteries (connectedCenterlineComponents) to expect. Default = 1")
+    parser.add_argument('--wall', action=argparse.BooleanOptionalAction)
+    args = parser.parse_args()
+
+    tests = [CenterlineInsideLumen(), LumenInsideWall(), NumArteries(args.na)]
+
+    case_loader = CaseLoader(args.d)
+    tester = DatasetTester(tests)
+    processor = Processor(tester, case_loader)
+    if args.n > 1:
+        processor.process_parallel(args.n)
+    else:
+        processor.process()
+
+    logger.info("If you do not see any error messages above, the dataset is valid.")
+
+
 if __name__ == '__main__':
-    create_sparse_label()
+    check_dataset()
+    # create_sparse_label()

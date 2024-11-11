@@ -18,6 +18,9 @@ class CrossSectionCenterline:
     def belong_to_centerline(self, points):
         return (self._cross_section_skeletons.query(points)[0] < self._distant_skeletons.query(points)[0]).reshape(-1, 1)
 
+    def has_valid_centerline(self):
+        return self._cross_section_skeletons.n > 0
+
     @property
     def _cross_section_skeletons(self):
         if self.__cross_section_skeletons is None:

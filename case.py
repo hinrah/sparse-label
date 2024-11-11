@@ -50,12 +50,11 @@ class Case:
     def _load_cross_sections(self):
         raw_cross_sections = self._load_raw_cross_sections()
         self.cross_sections = []
-        for raw_cross_section in raw_cross_sections.values():
+        for identifier, raw_cross_section in raw_cross_sections.items():
             reader = CrossSectionReader(raw_cross_section)
             if reader.lumen_contour_points is None:
-                print("Cross-section does not have lumen contour.")
                 continue
-            self.cross_sections.append(CrossSection(reader.lumen_contour_points, reader.wall_contour_points))
+            self.cross_sections.append(CrossSection(identifier, reader.lumen_contour_points, reader.wall_contour_points))
 
     def _load_raw_cross_sections(self):
         file_name = self.case_id + Endings.JSON
