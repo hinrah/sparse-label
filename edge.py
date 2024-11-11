@@ -15,6 +15,6 @@ class Edge:
         if plane_points.size == 0:
             return False
         for point in plane_points:
-            if not cross_section.is_projected_inside_lumen(point):
-                return False
-        return True
+            if cross_section.is_projected_inside_lumen(point):
+                return True
+        return False
