@@ -4,11 +4,14 @@ from glob import glob
 
 import nibabel as nib
 import numpy as np
+import trimesh
 from networkx.readwrite import json_graph
 from scipy.spatial import cKDTree
+from skimage import measure
 
-from constants import Contours, Endings, data_raw, Folders
+from constants import Contours, Endings, data_raw, Folders, Labels
 from cross_section import CrossSection
+from mask_image import homogenous, de_homgenize
 
 
 class CrossSectionReader:
@@ -32,6 +35,54 @@ class CrossSectionReader:
         if points.shape[1] != 3:
             raise ValueError("The contour points need to be in 3D world coordinates")
         return points
+
+
+class EvaluationCase:
+    def __init__(self, case_id, dataset):
+        self.case_id = case_id
+        self.dataset = dataset
+        self.prediction = None
+        self._case = Case(case_id, dataset)
+        self.__lumen_mesh = None
+        self.__outer_mesh = None
+
+    def load(self):
+        self._case.load()
+        self._load_prediction()
+
+    def _load_prediction(self):
+        file_name = self.case_id + Endings.NIFTI
+        prediction_path = os.path.join(data_raw, self.dataset, Folders.PREDICTIONS, file_name)
+        self.prediction = nib.load(prediction_path)
+
+    @property
+    def lumen_mesh(self):
+        if self.__lumen_mesh is None:
+            self.__lumen_mesh = self._get_mesh(self.prediction, [Labels.LUMEN])
+        return self.__lumen_mesh
+
+    @property
+    def outer_mesh(self):
+        if self.__outer_mesh is None:
+            self.__outer_mesh = self._get_mesh(self.prediction, [Labels.LUMEN, Labels.WALL])
+        return self.__outer_mesh
+
+    @property
+    def cross_sections(self):
+        return self._case.cross_sections
+
+    @property
+    def centerline(self):
+        return self._case.centerline
+
+    def _get_mesh(self, prediction, label_values):
+        binary_prediction = np.isin(prediction.get_fdata(), label_values)
+        verts, faces, normals, _ = measure.marching_cubes(binary_prediction, level=0.5)
+
+        verts_h = homogenous(verts)
+        verts_w = de_homgenize(verts_h @ prediction.affine.T)
+
+        return trimesh.Trimesh(vertices=verts_w, faces=faces, vertex_normals=normals)
 
 
 class Case:
@@ -126,11 +177,12 @@ class Case:
 
 
 class CaseLoader:
-    def __init__(self, dataset):
+    def __init__(self, dataset, case_type=Case):
         self.case_ids = []
         self._dataset = dataset
         self._search_cases()
         self.index = 0
+        self._case_type = case_type
 
     def _search_cases(self):
         self.case_ids = []
@@ -147,7 +199,7 @@ class CaseLoader:
         if self.index < len(self.case_ids):
             case_id = self.case_ids[self.index]
             self.index += 1
-            case = Case(case_id, self._dataset)
+            case = self._case_type(case_id, self._dataset)
             case.load()
             return case
         else:

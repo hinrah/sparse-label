@@ -33,6 +33,10 @@ class CrossSection:
     def lumen_points(self):
         return self._lumen_contour_points
 
+    @property
+    def outer_wall_points(self):
+        return self._outer_wall_contour_points
+
     def _create_pca(self, lumen_contour_points, outer_wall_contour_points):
         if outer_wall_contour_points is None:
             points = lumen_contour_points

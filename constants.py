@@ -10,6 +10,7 @@ class Labels:
 class Folders:
     IMAGES = "images"
     LABELS = "labels"
+    PREDICTIONS = "predictions"
     CENTERLINES = "centerlines"
     CONTOURS = "contours"
 
