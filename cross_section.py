@@ -1,6 +1,8 @@
 import numpy as np
 from sklearn.decomposition import PCA
+from skimage.draw import polygon
 
+from constants import Labels
 from contour import Contour
 
 
@@ -58,6 +60,12 @@ class CrossSection:
     def plane_transform(self):
         return self._pca.components_[:2].T
 
+    def plane_x_axis(self):
+        return self._pca.components_[0]
+
+    def plane_y_axis(self):
+        return self._pca.components_[1]
+
     def transform_points_to_plane_coordinates(self, points):
         points = points.reshape(-1, 3)
         return (points - self.plane_center) @ self.plane_transform
@@ -73,13 +81,30 @@ class CrossSection:
         return np.array([self.is_projected_inside_lumen(point) for point in points]).reshape(-1, 1)
 
     def projected_inside_wall(self, points):
-        return np.array([self.is_projected_inside_wall(point) for point in points]).reshape(-1,1)
+        return np.array([self.is_projected_inside_wall(point) for point in points]).reshape(-1, 1)
 
     def is_projected_inside_wall(self, point):
         if self._outer_wall_contour is None:
             raise ContourDoesNotExistError
         projected_point = self.transform_points_to_plane_coordinates(point)[0]
         return self._outer_wall_contour.contains_point(projected_point)
+
+    def create_pixel_mask(self, pixel_dims, image_shape):
+        mask = np.zeros(image_shape, dtype=np.uint8)
+
+        if self._outer_wall_contour is not None:
+            points = self._outer_wall_contour.points
+            x_pixel_coord = points[:, 0] / pixel_dims[0] + image_shape[1] / 2
+            y_pixel_coord = points[:, 1] / pixel_dims[1] + image_shape[1] / 2
+            rr, cc = polygon(y_pixel_coord, x_pixel_coord, image_shape)
+            mask[rr, cc] = Labels.WALL
+
+        points = self._lumen_contour.points
+        rr, cc = polygon(points[:, 1] / pixel_dims[1] + image_shape[1] / 2, points[:, 0] / pixel_dims[0] + image_shape[1] / 2, image_shape)
+        mask[rr, cc] = Labels.LUMEN
+
+        return mask
+
 
 class ContourDoesNotExistError(AttributeError):
     pass

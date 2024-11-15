@@ -39,6 +39,7 @@ class CrossSectionReader:
 
 class EvaluationCase:
     def __init__(self, case_id, dataset):
+        self._centerline_sensitivity = None
         self.case_id = case_id
         self.dataset = dataset
         self.prediction = None
@@ -74,6 +75,19 @@ class EvaluationCase:
     @property
     def centerline(self):
         return self._case.centerline
+
+    def all_centerline_points(self):
+        return self._case.all_centerline_points()
+    
+    @property
+    def centerline_sensitivity(self):
+        if self._centerline_sensitivity is None:
+            self._centerline_sensitivity = self._calculate_centerline_sensitivity()
+        return self._centerline_sensitivity
+    
+    def _calculate_centerline_sensitivity(self):
+        inside_mesh = self.lumen_mesh.contains(self.all_centerline_points())
+        return np.sum(inside_mesh) / len(inside_mesh)
 
     def _get_mesh(self, prediction, label_values):
         binary_prediction = np.isin(prediction.get_fdata(), label_values)
@@ -139,7 +153,7 @@ class Case:
         return self.image.header['pixdim'][1:4]
 
     def min_lumen_centerline_distance(self):
-        centerline_points = self._all_centerline_points()
+        centerline_points = self.all_centerline_points()
         lumen_points = self._all_lumen_points()
         if not centerline_points.size or not lumen_points.size:
             raise ValueError()
@@ -169,7 +183,7 @@ class Case:
             lumen_points.append(cross_section.lumen_points)
         return np.vstack(lumen_points)
 
-    def _all_centerline_points(self):
+    def all_centerline_points(self):
         centerline_points = [np.zeros((0, 3))]
         for start, end in self.centerline.edges():
             centerline_points.append(self.centerline[start][end]['skeletons'])

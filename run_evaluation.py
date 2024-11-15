@@ -9,6 +9,10 @@ from evaluation.evaluate3DSegmentationOnSparse import evaluate_segmentations
 def save_results_to_csv(path_to_save, metrics):
     metrics_data = {
         "name": [metric[0] for metric in metrics],
+        #"dice_wall": [np.mean(metric[1].dice_coefficients(), axis=0)[1] for metric in metrics],
+        #"dice_lumen": [np.mean(metric[1].dice_coefficients(), axis=0)[2] for metric in metrics],
+        #"dice_wall_median": [np.median(metric[1].dice_coefficients(), axis=0)[1] for metric in metrics],
+        #"dice_lumen_median": [np.median(metric[1].dice_coefficients(), axis=0)[2] for metric in metrics],
         "hausdorff_distance_wall": [np.mean(metric[1].hausdorff_distances(), axis=0)[1] for metric in metrics],
         "hausdorff_distance_lumen": [np.mean(metric[1].hausdorff_distances(), axis=0)[2] for metric in metrics],
         "hausdorff_distance_wall_median": [np.median(metric[1].hausdorff_distances(), axis=0)[1] for metric in metrics],
@@ -21,6 +25,9 @@ def save_results_to_csv(path_to_save, metrics):
         "average_countour_distance_lumen": [np.mean(metric[1].average_contour_distances(), axis=0)[2] for metric in metrics],
         "average_countour_distance_wall_median": [np.median(metric[1].average_contour_distances(), axis=0)[1] for metric in metrics],
         "average_countour_distance_lumen_median": [np.median(metric[1].average_contour_distances(), axis=0)[2] for metric in metrics],
+        "mean_centerline_sensitivity": [np.mean(metric[1].centerline_sensitivities()) for metric in metrics],
+        "median_centerline_sensitivity": [np.median(metric[1].centerline_sensitivities()) for metric in metrics],
+        "num_missed_slices": [metric[1].num_invalid_results() for metric in metrics]
     }
     df = pd.DataFrame(metrics_data)
     df.to_csv(path_to_save)

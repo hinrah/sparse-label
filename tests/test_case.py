@@ -230,6 +230,6 @@ class TestCase(TestCase):
         }
         case.centerline = json_graph.node_link_graph(centerline_raw, link="edges")
 
-        result = case._all_centerline_points()
+        result = case.all_centerline_points()
         expected = np.array([[0, 0, 0], [1, 1, 1], [2, 2, 2], [3, 3, 3]])
         np.testing.assert_array_equal(result, expected)
