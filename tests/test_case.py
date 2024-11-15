@@ -130,7 +130,7 @@ class TestCase(TestCase):
         result = case.min_lumen_centerline_distance()
         self.assertEqual(result, 0.0)
 
-    @patch.object(Case, '_all_centerline_points')
+    @patch.object(Case, 'all_centerline_points')
     @patch.object(Case, '_all_lumen_points')
     def test_min_lumen_centerline_distance_zero(self, mock_all_lumen_points, mock_all_centerline_points):
         mock_all_centerline_points.return_value = np.array([[0, 0, 1], [2, 2, 1], [3, 2, 2]])
@@ -140,7 +140,7 @@ class TestCase(TestCase):
         result = case.min_lumen_centerline_distance()
         self.assertEqual(result, 1.0)
 
-    @patch.object(Case, '_all_centerline_points')
+    @patch.object(Case, 'all_centerline_points')
     @patch.object(Case, '_all_lumen_points')
     def test_min_lumen_centerline_distance_with_empty_points(self, mock_all_lumen_points, mock_all_centerline_points):
         test_cases = [

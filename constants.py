@@ -8,11 +8,11 @@ class Labels:
     UNPROCESSED = -1
 
 class Folders:
-    IMAGES = "images"
-    LABELS = "labels"
-    PREDICTIONS = "predictions"
-    CENTERLINES = "centerlines"
-    CONTOURS = "contours"
+    IMAGES = "imagesTr"
+    LABELS = "labelsTr"
+    PREDICTIONS = "predictionsTr"
+    CENTERLINES = "centerlinesTr"
+    CONTOURS = "contoursTr"
 
 class Endings:
     JSON = ".json"

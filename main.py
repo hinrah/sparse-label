@@ -51,7 +51,7 @@ def create_sparse_label():
 
 
 def check_dataset():
-    logger.setLevel("WARNING")
+    logger.setLevel("INFO")
     parser = argparse.ArgumentParser()
     parser.add_argument('-d', help="[REQUIRED] dataset name (folder name) for which the label creation is performed.")
     parser.add_argument('-n', default=1, type=int, help="[OPTIONAL] number of processes. If not set this will run synchronous on one process.")
@@ -73,5 +73,5 @@ def check_dataset():
 
 
 if __name__ == '__main__':
-    check_dataset()
-    # create_sparse_label()
+    #check_dataset()
+    create_sparse_label()
