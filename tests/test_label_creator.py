@@ -38,9 +38,9 @@ class TestDefaultLabelCreator(TestCase):
 
                 label_creator.apply(test_case)
 
-                true_labels = nib.load(os.path.join(self.test_dir, "test_data", "Dataset001_test", "labels", "test.nii.gz"))
+                true_labels = nib.load(os.path.join(self.test_dir, "test_data", "Dataset001_test", "labelsTr", "test.nii.gz"))
                 np.testing.assert_array_equal(true_labels.get_fdata(), expected_result.get_fdata())
                 np.testing.assert_array_equal(true_labels.affine, expected_result.affine)
 
     def tearDown(self) -> None:
-        shutil.rmtree(os.path.join(self.test_dir, "test_data", "Dataset001_test", "labels"))
+        shutil.rmtree(os.path.join(self.test_dir, "test_data", "Dataset001_test", "labelsTr"))

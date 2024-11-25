@@ -20,7 +20,7 @@ def create_sparse_label():
                              " cross-section plane are considered part of the cross_section. If this is not set the maximum voxel size is used.")
     parser.add_argument('-cr', type=float,
                         help="[OPTIONAL] radius of the lumen voxels that are created based on the centerlines. If this is not set it is calculated "
-                             "as the 5th percentile of the distance of all lumen contours to the centerlines. It is at leaset the max_voxel_size.")
+                             "as the 5th percentile of the distance of all lumen contoursTr to the centerlines. It is at leaset the max_voxel_size.")
     parser.add_argument('-vr', type=float,
                         help="[OPTIONAL] vessel radius. Everything that is further away from the centerlines is considered as background. If this is "
                              "not set, it is calculated as 1.2 times the maximum distance of all contour points to there cross-section center")
