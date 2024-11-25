@@ -32,15 +32,12 @@ class EvaluationProcessor:
                 pbar.refresh()
 
 
-def evaluate_segmentations():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-d', help="[REQUIRED] dataset name (folder name) for which the label creation is performed.")
-    args = parser.parse_args()
+def evaluate_segmentations(dataset, num_threads, evaluator):
+
     manager = Manager()
 
-    evaluator = SegmentationEvaluator2DContourOn3DLabel(classes=[0, 1, 2])
-    processor = EvaluationProcessor(CaseLoader(args.d, EvaluationCase), manager, evaluator)
-    processor.process_parallel(num_threads=4)
+    processor = EvaluationProcessor(CaseLoader(dataset, EvaluationCase), manager, evaluator)
+    processor.process_parallel(num_threads=num_threads)
 
     segmentation_results = SegmentationResults()
     for segmentation_result in processor.segmentation_results:

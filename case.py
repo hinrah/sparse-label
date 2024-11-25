@@ -9,7 +9,7 @@ from networkx.readwrite import json_graph
 from scipy.spatial import cKDTree
 from skimage import measure
 
-from constants import Contours, Endings, data_raw, Folders, Labels
+from constants import Contours, Endings, data_raw, Folders, Labels, data_results
 from cross_section import CrossSection
 from mask_image import homogenous, de_homgenize
 
@@ -38,11 +38,15 @@ class CrossSectionReader:
 
 
 class EvaluationCase:
-    def __init__(self, case_id, dataset):
+    def __init__(self, case_id, dataset, prediction_path=None):
         self._centerline_sensitivity = None
         self.case_id = case_id
         self.dataset = dataset
         self.prediction = None
+        if prediction_path is None:
+            self.prediction_path = os.path.join(data_results, self.dataset, Folders.FULLRES_TRAINER, Folders.CROSS_VALIDATION_RESULTS, Folders.POSTPROCESSED)
+        else: 
+            self.prediction_path = prediction_path
         self._case = Case(case_id, dataset)
         self.__lumen_mesh = None
         self.__outer_mesh = None
@@ -53,7 +57,7 @@ class EvaluationCase:
 
     def _load_prediction(self):
         file_name = self.case_id + Endings.NIFTI
-        prediction_path = os.path.join(data_raw, self.dataset, Folders.PREDICTIONS, file_name)
+        prediction_path = os.path.join(self.prediction_path, file_name)
         self.prediction = nib.load(prediction_path)
 
     @property

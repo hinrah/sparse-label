@@ -18,7 +18,7 @@ class SegmentationEvaluator2DContourOn3DLabel:
         self._classes = classes
 
     def evaluate(self, truth: CrossSection, case):
-        return Metrics(dice_coefficients={},
+        return Metrics(dice_coefficients={class_value: np.nan for class_value in self._classes},
                        hausdorff_distances=self._evaluate_metric(truth, case, self._hausdorff_distance),
                        hausdorff_distances_95=self._evaluate_metric(truth, case, self._hausdorff_distance_95),
                        average_contour_distances=self._evaluate_metric(truth, case, self._average_surface_distance),
@@ -69,7 +69,7 @@ class SegmentationEvaluator2DContourOn2DCrossSections:
                        hausdorff_distances=hausdorff_distances,
                        hausdorff_distances_95=hausdorff_distances_95,
                        average_contour_distances=mean_contour_distances,
-                       centerline_sensitivity=None,
+                       centerline_sensitivity=np.nan,
                        is_correct=is_correct)
 
     def evaluate_dice_coefficients(self, truth, prediction):

@@ -34,7 +34,7 @@ def create_sparse_label():
     if not args.t:
         args.t = max_voxel_size
 
-    if not args.cr:
+    if args.cr is None:
         args.cr = max(get_min_lumen_centerline_distance(case_loader), max_voxel_size)
 
     if not args.vr:
