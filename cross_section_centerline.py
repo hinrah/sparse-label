@@ -37,9 +37,17 @@ class CrossSectionCenterline:
         cross_section_skeletons = [np.zeros((0, 3))]
         distant_skeletons = [np.zeros((0, 3))]
         for edge in self.edges():
-            if edge.intersects(self._cross_section):
-                cross_section_skeletons.append(edge.skeletons)
-            else:
+            in_lumen, out_lumen = edge.intersections(self._cross_section)
+            if in_lumen and not out_lumen:
+                cross_section_skeletons.extend(edge.skeletons)
+            elif not in_lumen:
                 distant_skeletons.extend(edge.skeletons)
+            else:
+                in_lumen = cKDTree(np.vstack(in_lumen))
+                out_lumen = cKDTree(np.vstack(out_lumen))
+                distance_in_lumen, _ = in_lumen.query(edge.skeletons)
+                distance_out_lumen, _ = out_lumen.query(edge.skeletons)
+                distant_skeletons.extend(edge.skeletons[np.nonzero(distance_out_lumen < distance_in_lumen)])
+                cross_section_skeletons.extend(edge.skeletons[np.nonzero(distance_out_lumen >= distance_in_lumen)])
         self.__cross_section_skeletons = cKDTree(np.vstack(cross_section_skeletons))
         self.__distant_skeletons = cKDTree(np.vstack(distant_skeletons))

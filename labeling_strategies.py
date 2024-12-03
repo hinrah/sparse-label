@@ -66,17 +66,6 @@ class LabelCrossSection:
             self.__potential_foreground_idx = (point_distance < max_contour_distance).nonzero()[0]
         return self.__potential_foreground_idx
 
-    def _classify_centerline_points(self):
-        good_edge_points = [np.zeros((0, 3))]
-        bad_edge_points = [np.zeros((0, 3))]
-        for edge in self._centerline.edges():
-            if edge.intersects(self._cross_section):
-                good_edge_points.append(edge.skeletons)
-            else:
-                bad_edge_points.extend(edge.skeletons)
-        return np.vstack(good_edge_points), np.vstack(bad_edge_points)
-
-
 class LabelCrossSections:
     def __init__(self, distance_threshold, with_wall=True):
         self._distance_threshold = distance_threshold
@@ -105,7 +94,7 @@ class LabelCenterline:
 
         edge_points = np.array(edge_points)
         edge_points = cKDTree(edge_points)
-        distance, _ = edge_points.query(mask.voxel_center_points)
+        distance, _ = edge_points.query(mask.voxel_center_points, distance_upper_bound=self._radius)
 
         if self._label_to_create == Labels.LUMEN:
             out = np.where(distance < self._radius, Labels.LUMEN, Labels.UNPROCESSED).reshape(-1, 1)

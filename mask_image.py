@@ -9,7 +9,7 @@ class SparseMaskImage:
         self._shape = shape
         self._affine = affine
         self._voxel_center_points = None
-        self._mask = np.ones(shape).reshape((-1, 1)) * Labels.UNPROCESSED
+        self._mask = np.ones(shape, dtype=np.int8).reshape((-1, 1)) * Labels.UNPROCESSED
 
     @property
     def mask(self):
