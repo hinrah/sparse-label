@@ -18,8 +18,8 @@ class TestDefaultLabelCreator(TestCase):
     @patch("case.data_raw", new=os.path.join(os.path.dirname(os.path.abspath(__file__)), "test_data"))
     @patch("label_creator.data_raw", new=os.path.join(os.path.dirname(os.path.abspath(__file__)), "test_data"))
     def test_create_label_with_wall(self):
-        all_with_wall = [LabelCrossSections(0.6/2, with_wall=True), LabelCenterline(0.6, Labels.LUMEN), LabelCenterline(15, Labels.BACKGROUND)]
-        all_without_wall = [LabelCrossSections(0.6/2, with_wall=False), LabelCenterline(0.6, Labels.LUMEN), LabelCenterline(15, Labels.BACKGROUND)]
+        all_with_wall = [LabelCrossSections(0.6/2, with_wall=True, radius=20), LabelCenterline(0.6, Labels.LUMEN), LabelCenterline(15, Labels.BACKGROUND)]
+        all_without_wall = [LabelCrossSections(0.6/2, with_wall=False, radius=20), LabelCenterline(0.6, Labels.LUMEN), LabelCenterline(15, Labels.BACKGROUND)]
 
         all_with_wall_label = nib.load(os.path.join(self.test_dir, "test_data", "Dataset001_test", "expected_labels", "test_with_wall.nii.gz"))
         all_without_wall_label = nib.load(os.path.join(self.test_dir, "test_data", "Dataset001_test", "expected_labels", "test_without_wall.nii.gz"))
@@ -43,4 +43,4 @@ class TestDefaultLabelCreator(TestCase):
                 np.testing.assert_array_equal(true_labels.affine, expected_result.affine)
 
     def tearDown(self) -> None:
-        shutil.rmtree(os.path.join(self.test_dir, "test_data", "Dataset001_test", "labelsTr"))
+        pass#shutil.rmtree(os.path.join(self.test_dir, "test_data", "Dataset001_test", "labelsTr"))

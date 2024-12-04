@@ -36,6 +36,12 @@ class CrossSectionReader:
             raise ValueError("The contour points need to be in 3D world coordinates")
         return points
 
+    @property
+    def ending_normal(self):
+        if self._raw_cross_section.get(Contours.ENDING_NORMAL) is None:
+            return None
+        return np.array(self._raw_cross_section[Contours.ENDING_NORMAL]).reshape(-1, 1)
+
 
 class EvaluationCase:
     def __init__(self, case_id, dataset, prediction_path=None):
@@ -123,7 +129,7 @@ class Case:
             reader = CrossSectionReader(raw_cross_section)
             if reader.lumen_contour_points is None:
                 continue
-            self.cross_sections.append(CrossSection(identifier, reader.lumen_contour_points, reader.wall_contour_points))
+            self.cross_sections.append(CrossSection(identifier, reader.lumen_contour_points, reader.wall_contour_points, ending_normal=reader.ending_normal))
 
     def _load_raw_cross_sections(self):
         file_name = self.case_id + Endings.JSON

@@ -8,7 +8,7 @@ from logging_config import logger
 
 import argparse
 
-from labeling_strategies import LabelCenterline, LabelCrossSections
+from labeling_strategies import LabelCenterline, LabelCrossSections, LabelEndingCrossSections
 from processor import Processor
 
 
@@ -21,10 +21,13 @@ def create_sparse_label():
     parser.add_argument('-cr', type=float,
                         help="[OPTIONAL] radius of the lumen voxels that are created based on the centerlines. If this is not set it is calculated "
                              "as the 5th percentile of the distance of all lumen contoursTr to the centerlines. It is at leaset the max_voxel_size.")
+    parser.add_argument('-br', type=float,
+                        help="[OPTIONAL] background radius for cross-sections. Radius around the cross-section centerpoint that is considered as background.")
     parser.add_argument('-vr', type=float,
                         help="[OPTIONAL] vessel radius. Everything that is further away from the centerlines is considered as background. If this is "
                              "not set, it is calculated as 1.2 times the maximum distance of all contour points to there cross-section center")
     parser.add_argument('-n', default=1, type=int, help="[OPTIONAL] number of processes. If not set this will run synchronous on one process.")
+    parser.add_argument('--ending', action=argparse.BooleanOptionalAction, default=False)
     parser.add_argument('--wall', action=argparse.BooleanOptionalAction)
     args = parser.parse_args()
 
@@ -40,7 +43,12 @@ def create_sparse_label():
     if not args.vr:
         args.vr = get_max_contour_centerline_distance(case_loader) * 1.2
 
-    strategies = [LabelCrossSections(args.t / 2, with_wall=args.wall), LabelCenterline(args.cr, Labels.LUMEN), LabelCenterline(args.vr, Labels.BACKGROUND)]
+    if not args.br:
+        args.br = args.vr
+
+    strategies = [LabelCrossSections(args.t / 2, with_wall=args.wall, radius=args.br), LabelCenterline(args.cr, Labels.LUMEN), LabelCenterline(args.vr, Labels.BACKGROUND)]
+    if args.ending:
+        strategies.append(LabelEndingCrossSections(args.t / 2, radius=args.vr))
 
     label_creator = LabelCreator(strategies)
     processor = Processor(label_creator, case_loader)

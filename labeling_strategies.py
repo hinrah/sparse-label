@@ -8,7 +8,7 @@ from cross_section_centerline import CrossSectionCenterline
 
 
 class LabelCrossSection:
-    def __init__(self, distance_threshold, with_wall, cross_section, centerline, mask):
+    def __init__(self, distance_threshold, with_wall, cross_section, centerline, mask, radius):
         self._distance_threshold = distance_threshold
         self._with_wall = with_wall
         self._cross_section = cross_section
@@ -18,6 +18,7 @@ class LabelCrossSection:
         self.__labels = None
         self.__label_points = None
         self.__potential_foreground_idx = None
+        self._radius = radius
 
     def apply(self):
         try:
@@ -37,13 +38,16 @@ class LabelCrossSection:
 
     def _label_background(self):
         labels_with_background = np.where(self._labels == Labels.UNPROCESSED, Labels.BACKGROUND, self._labels)
-        self.__labels = np.where(self._centerline.belong_to_centerline(self._label_points), labels_with_background, self._labels)
+        self.__labels = np.where(self._centerline.belong_to_centerline(self._label_points, radius=np.inf), labels_with_background, self._labels)
 
     @property
     def _label_idx(self):
         if self.__label_idx is None:
             distance_to_plane = self._cross_section.distance_to_plane(self._mask.voxel_center_points)
-            self.__label_idx = np.nonzero(distance_to_plane <= self._distance_threshold)[0]
+            is_plane_voxel = distance_to_plane <= self._distance_threshold
+            is_relevant_voxel = (np.linalg.norm(self._mask.voxel_center_points - self._cross_section.plane_center, axis=1) <= self._radius).reshape((-1, 1))
+
+            self.__label_idx = np.nonzero(np.logical_and(is_plane_voxel, is_relevant_voxel))[0]
         return self.__label_idx
 
     @property
@@ -67,16 +71,17 @@ class LabelCrossSection:
         return self.__potential_foreground_idx
 
 class LabelCrossSections:
-    def __init__(self, distance_threshold, with_wall=True):
+    def __init__(self, distance_threshold, with_wall=True, radius=np.inf):
         self._distance_threshold = distance_threshold
         self._with_wall = with_wall
+        self._radius = radius
 
     def apply(self, mask, case):
         for cross_section in case.cross_sections:
             self._label_cross_section(mask, cross_section, case.centerline)
 
     def _label_cross_section(self, mask, cross_section, centerline):
-        strategy = LabelCrossSection(self._distance_threshold, self._with_wall, cross_section, centerline, mask)
+        strategy = LabelCrossSection(self._distance_threshold, self._with_wall, cross_section, centerline, mask, self._radius)
         strategy.apply()
 
 
@@ -100,5 +105,25 @@ class LabelCenterline:
             out = np.where(distance < self._radius, Labels.LUMEN, Labels.UNPROCESSED).reshape(-1, 1)
         elif self._label_to_create == Labels.BACKGROUND:
             out = np.where(distance > self._radius, Labels.BACKGROUND, Labels.UNPROCESSED).reshape(-1, 1)
+        else:
+            raise NotImplementedError
 
         mask.set_mask(out)
+
+
+class LabelEndingCrossSections:
+    def __init__(self, distance_threshold, radius=np.inf):
+        self._distance_threshold = distance_threshold
+        self._radius = radius
+
+    def apply(self, mask, case):
+        for cross_section in case.cross_sections:
+            if cross_section.is_ending_cross_section:
+                self._label_ending_cross_sections(mask, cross_section)
+
+    def _label_ending_cross_sections(self, mask, cross_section):
+        labels = np.ones((mask.voxel_center_points.shape[0], 1)) * Labels.UNPROCESSED
+        background_voxels = np.nonzero(np.logical_and(np.dot(mask.voxel_center_points - cross_section.plane_center, cross_section.ending_normal) > 0,
+                                                      (np.linalg.norm(mask.voxel_center_points - cross_section.plane_center, axis=1) <= self._radius).reshape((-1,1))))[0]
+        labels[background_voxels] = Labels.BACKGROUND
+        mask.set_mask(labels)

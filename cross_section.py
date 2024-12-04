@@ -7,11 +7,12 @@ from contour import Contour
 
 
 class CrossSection:
-    def __init__(self, identifier, lumen_contour, outer_wall_contour=None):
+    def __init__(self, identifier, lumen_contour, outer_wall_contour=None, ending_normal=None):
         self.identifier = identifier
         self._lumen_contour_points = lumen_contour
         self._outer_wall_contour_points = outer_wall_contour
         self._pca = self._create_pca(lumen_contour, outer_wall_contour)
+        self._ending_normal = ending_normal
 
         self._lumen_contour = Contour(self.transform_points_to_plane_coordinates(lumen_contour))
         if outer_wall_contour is not None:
@@ -104,6 +105,21 @@ class CrossSection:
         mask[rr, cc] = Labels.LUMEN
 
         return mask
+
+    @property
+    def is_ending_cross_section(self):
+        return self._ending_normal is not None
+
+    @property
+    def ending_normal(self):
+        if not self.is_ending_cross_section:
+            raise RuntimeError("This cross section is not an ending cross section")
+
+        normal_direction = np.dot(self.plane_normal[:,0], self._ending_normal[:,0]) > 0
+        if normal_direction:
+            return self.plane_normal
+        else:
+            return -self.plane_normal
 
 
 class ContourDoesNotExistError(AttributeError):

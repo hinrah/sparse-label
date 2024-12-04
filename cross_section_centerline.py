@@ -15,8 +15,8 @@ class CrossSectionCenterline:
         for start, end in self._centerline.edges():
             yield Edge(np.array(self._centerline[start][end]['skeletons']))
 
-    def belong_to_centerline(self, points):
-        return (self._cross_section_skeletons.query(points)[0] < self._distant_skeletons.query(points)[0]).reshape(-1, 1)
+    def belong_to_centerline(self, points, radius=np.inf):
+        return (np.bitwise_and(self._cross_section_skeletons.query(points)[0] < self._distant_skeletons.query(points)[0], self._cross_section_skeletons.query(points)[0] <= radius)).reshape(-1, 1)
 
     def has_valid_centerline(self):
         return self._cross_section_skeletons.n > 0

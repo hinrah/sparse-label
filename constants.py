@@ -25,6 +25,7 @@ class Endings:
 class Contours:
     INNER = "inner_contour"
     OUTER = "outer_contour"
+    ENDING_NORMAL = "ending_normal"
 
 data_raw = os.environ.get("sparseVesselMasks_raw")
 
