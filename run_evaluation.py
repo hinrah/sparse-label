@@ -39,7 +39,7 @@ def save_results_to_csv(path_to_save, metrics):
 
 evaluators = {
     "3D": SegmentationEvaluator2DContourOn3DLabel(classes=[0, 1, 2]),
-    "2D": SegmentationEvaluator2DContourOn2DCrossSections(classes=[0, 1, 2], mpr_resolution=(0.1953125, 0.1953125), mpr_shape=(128,128))
+    "2D": SegmentationEvaluator2DContourOn2DCrossSections(classes=[0, 1, 2], mpr_resolution=(0.0976562, 0.0976562), mpr_shape=(166,166)),
 }
 
 def datset_name_for_dataset_id(dataset_id):
@@ -65,14 +65,16 @@ if __name__ == "__main__":
     parser.add_argument('-d', nargs='+', help="[REQUIRED] dataset name (folder name) for which the label creation is performed.")
     parser.add_argument('-o', help="[REQUIRED] Output directory for the results.")
     parser.add_argument('-e', help="[REQUIRED] evaluator to use")
-    
+    parser.add_argument('-tr', nargs='+', default=["nnUNetTrainer"], help="[Optional] trainers that should be evaluated")
+    parser.add_argument('-c', nargs='+', default=["3d_fullres"], help="[Optional] network configurations that should be evaluated")
     args = parser.parse_args()
 
     metrics = []
-    for dataset_id in args.d:
-        dataset = datset_name_for_dataset_id(dataset_id) 
-        segmentation_results = evaluate_segmentations(dataset, args.n, evaluators[args.e])
-
-        metrics.append((dataset, segmentation_results))
-
+    for trainer in args. tr:
+        for config in args.c:
+            for dataset_id in args.d:
+                for postprocessed in [True, False]:
+                    dataset = datset_name_for_dataset_id(dataset_id) 
+                    segmentation_results = evaluate_segmentations(dataset, trainer, config, args.n, evaluators[args.e], postprocessed)
+                    metrics.append((dataset + "_" + trainer + "_" + config + "_pp" + str(postprocessed), segmentation_results))
     save_results_to_csv(os.path.join(args.o, f"results_{args.e}.csv"), metrics)

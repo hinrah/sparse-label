@@ -44,11 +44,11 @@ def create_sparse_label():
         args.vr = get_max_contour_centerline_distance(case_loader) * 1.2
 
     if not args.br:
-        args.br = args.vr
+        args.br = args.vr*1.2
 
     strategies = [LabelCrossSections(args.t / 2, with_wall=args.wall, radius=args.br), LabelCenterline(args.cr, Labels.LUMEN), LabelCenterline(args.vr, Labels.BACKGROUND)]
     if args.ending:
-        strategies.append(LabelEndingCrossSections(args.t / 2, radius=args.vr))
+        strategies.append(LabelEndingCrossSections(args.t / 2, radius=args.br))
 
     label_creator = LabelCreator(strategies)
     processor = Processor(label_creator, case_loader)

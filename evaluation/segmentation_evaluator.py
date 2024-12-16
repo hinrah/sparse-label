@@ -37,11 +37,11 @@ class SegmentationEvaluator2DContourOn3DLabel:
     def _evaluate_metric(self, truth, case, metric):
         metrics = {}
         for class_value in self._classes:
-            if class_value == 0:
+            if class_value == Labels.BACKGROUND:
                 metrics[class_value] = np.inf
-            if class_value == 1:
+            if class_value == Labels.WALL:
                 metrics[class_value] = metric(case.outer_mesh, truth.outer_wall_points)
-            if class_value == 2:
+            if class_value == Labels.LUMEN:
                 metrics[class_value] = metric(case.lumen_mesh, truth.lumen_points)
         return metrics
 

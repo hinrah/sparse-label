@@ -44,15 +44,20 @@ class CrossSectionReader:
 
 
 class EvaluationCase:
-    def __init__(self, case_id, dataset, prediction_path=None):
+    def __init__(self, case_id, dataset, **kwargs):
         self._centerline_sensitivity = None
         self.case_id = case_id
         self.dataset = dataset
         self.prediction = None
-        if prediction_path is None:
-            self.prediction_path = os.path.join(data_results, self.dataset, Folders.FULLRES_TRAINER, Folders.CROSS_VALIDATION_RESULTS, Folders.POSTPROCESSED)
-        else: 
-            self.prediction_path = prediction_path
+        trainer = kwargs.get("trainer", Folders.DEFAULT_TRAINER)
+        config = kwargs.get("config", Folders.DEFAULT_CONFIG)
+        plans = kwargs.get("plans", Folders.DEFAULT_PLANS)
+        postprocessed = kwargs.get("postprocessed")
+        result_folder = Folders.SEPERATOR.join([trainer, plans, config])
+        self.prediction_path = os.path.join(data_results, self.dataset, result_folder, Folders.CROSS_VALIDATION_RESULTS)
+        if postprocessed:
+            self.prediction_path = os.path.join(self.prediction_path, Folders.POSTPROCESSED)
+        
         self._case = Case(case_id, dataset)
         self.__lumen_mesh = None
         self.__outer_mesh = None
@@ -80,14 +85,42 @@ class EvaluationCase:
 
     @property
     def cross_sections(self):
-        return self._case.cross_sections
+        return [cross_section for cross_section in self._case.cross_sections if self._cross_section_completely_inside_volume(cross_section)]
+    
+    def _filter_for_points_in_image(self, points):
+        points_h = homogenous(points)
+        points_v = de_homgenize(points_h @ np.linalg.inv(self._case.affine).T)
+
+        points_bigger_zero = np.min(points_v, axis=1) > 0
+        sum_bigger_zero = np.sum(points_bigger_zero)
+        points_smaller_shape = np.min(self._case.image_shape - points_v - 1 , axis=1) > 0
+        sum_smaller_shape= np.sum(points_smaller_shape)
+
+        valid_points = np.nonzero(np.logical_and(points_bigger_zero, points_smaller_shape)) 
+        
+        return points[valid_points]
+
+    def _cross_section_completely_inside_volume(self, cross_section):
+        contour_points_h = homogenous(cross_section.all_contour_points)
+        contour_points_v = de_homgenize(contour_points_h @ np.linalg.inv(self._case.affine).T)
+
+        min = np.min(contour_points_v, axis=0)
+        max = np.max(contour_points_v, axis=0)
+
+        if np.min(min) < 0:
+            return False
+        
+        if np.min(self._case.image_shape - max - 1) < 0:
+            return False
+        
+        return True
 
     @property
     def centerline(self):
         return self._case.centerline
 
     def all_centerline_points(self):
-        return self._case.all_centerline_points()
+        return self._filter_for_points_in_image(self._case.all_centerline_points())
     
     @property
     def centerline_sensitivity(self):
@@ -110,7 +143,7 @@ class EvaluationCase:
 
 
 class Case:
-    def __init__(self, case_id, dataset):
+    def __init__(self, case_id, dataset, **kwargs):
         self.case_id = case_id
         self.dataset = dataset
         self.image = None
@@ -152,7 +185,7 @@ class Case:
 
     @property
     def image_shape(self):
-        return self.image.shape
+        return self.image.shape[:3]
 
     @property
     def affine(self):
@@ -201,12 +234,13 @@ class Case:
 
 
 class CaseLoader:
-    def __init__(self, dataset, case_type=Case):
+    def __init__(self, dataset, case_type, **kwargs):
         self.case_ids = []
         self._dataset = dataset
         self._search_cases()
         self.index = 0
         self._case_type = case_type
+        self.kwargs = kwargs
 
     def _search_cases(self):
         self.case_ids = []
@@ -223,7 +257,7 @@ class CaseLoader:
         if self.index < len(self.case_ids):
             case_id = self.case_ids[self.index]
             self.index += 1
-            case = self._case_type(case_id, self._dataset)
+            case = self._case_type(case_id, self._dataset, **self.kwargs)
             case.load()
             return case
         else:

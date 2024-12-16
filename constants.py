@@ -13,7 +13,10 @@ class Folders:
     PREDICTIONS = "predictionsTr"
     CENTERLINES = "centerlinesTr"
     CONTOURS = "contoursTr"
-    FULLRES_TRAINER = "nnUNetTrainer__nnUNetPlans__3d_fullres"
+    DEFAULT_TRAINER = "nnUNetTrainer"
+    DEFAULT_CONFIG = "3d_fullres"
+    DEFAULT_PLANS = "nnUNetPlans"
+    SEPERATOR = "__"
     CROSS_VALIDATION_RESULTS = "crossval_results_folds_0_1_2_3_4"
     POSTPROCESSED = "postprocessed"
 

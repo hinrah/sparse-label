@@ -12,14 +12,23 @@ from evaluation.segmentation_results import SegmentationResults
 class EvaluationProcessor:
     lock = Lock()
 
-    def __init__(self, case_loader, manager, evaluator):
+    def __init__(self, case_loader, manager, evaluator, with_wall=True):
         self.segmentation_results = manager.list()
         self._case_loader = case_loader
         self._evaluator = evaluator
+        self._with_wall = with_wall
+
+    def _is_valid_evaluation_cross_section(self, cross_section):
+        if cross_section.lumen_points is None:
+            return False
+        if self._with_wall and cross_section.outer_wall_points is None:
+            return False
+        return True
+        
 
     def _process_one_item_parallel(self, case):
         for cross_section in case.cross_sections:
-            if cross_section.lumen_points is None or cross_section.outer_wall_points is None:
+            if not self._is_valid_evaluation_cross_section(cross_section):
                 continue
             segmentation_result = self._evaluator.evaluate(cross_section, case)
             with self.lock:
@@ -32,11 +41,13 @@ class EvaluationProcessor:
                 pbar.refresh()
 
 
-def evaluate_segmentations(dataset, num_threads, evaluator):
+def evaluate_segmentations(dataset, trainer, configuration, num_threads, evaluator, postprocessed, with_wall=True):
 
     manager = Manager()
 
-    processor = EvaluationProcessor(CaseLoader(dataset, EvaluationCase), manager, evaluator)
+    case_loader = CaseLoader(dataset, EvaluationCase, trainer=trainer, configuration=configuration, postprocessed=postprocessed)
+
+    processor = EvaluationProcessor(case_loader, manager, evaluator, with_wall=with_wall)
     processor.process_parallel(num_threads=num_threads)
 
     segmentation_results = SegmentationResults()
