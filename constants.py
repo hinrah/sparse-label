@@ -1,24 +1,27 @@
 import os
 
-class Labels:
-    BACKGROUND = 0
-    WALL = 1
-    LUMEN = 2
-    UNKNOWN = 3
-    UNPROCESSED = -1
 
 class Folders:
-    IMAGES = "imagesTr"
-    LABELS = "labelsTr"
-    PREDICTIONS = "predictionsTr"
-    CENTERLINES = "centerlinesTr"
-    CONTOURS = "contoursTr"
+    IMAGES = "images"
+    LABELS = "labels"
+    PREDICTIONS = "predictions"
+    CENTERLINES = "centerlines"
+    CONTOURS = "contours"
     DEFAULT_TRAINER = "nnUNetTrainer"
     DEFAULT_CONFIG = "3d_fullres"
     DEFAULT_PLANS = "nnUNetPlans"
     SEPERATOR = "__"
     CROSS_VALIDATION_RESULTS = "crossval_results_folds_0_1_2_3_4"
     POSTPROCESSED = "postprocessed"
+
+
+class DatasetInfo:
+    FILE_NAME = "dataset.json"
+    LABELS = "labels"
+    BACKGROUND = "background"
+    LUMEN = "Lumen"
+    WALL = "Wall"
+    IGNORE = "ignore"
 
 class Endings:
     JSON = ".json"
@@ -30,19 +33,8 @@ class Contours:
     OUTER = "outer_contour"
     ENDING_NORMAL = "ending_normal"
 
-data_raw = os.environ.get("sparseVesselMasks_raw")
-
-if data_raw is None:
-    print("sparseVesselMasks_raw is not defined nnUNet_raw is now used.")
-    data_raw = os.environ.get('nnUNet_raw')
-    if data_raw is None:
-        print("nnUNet_raw is not defined as well. Sparse vessel masks can not be created.")
-
-
-data_results = os.environ.get("sparseVesselMasks_results")
-
-if data_results is None:
-    print("sparseVesselMasks_data_results is not defined nnUNet_data_results is now used.")
-    data_results = os.environ.get('nnUNet_results')
-    if data_results is None:
-        print("nnUNet_results is not defined as well. Sparse vessel masks can not be evaluated.")
+class EnvironmentVars:
+    sparse_vessel_masks_raw = "sparseVesselMasks_raw"
+    sparse_vessel_masks_results = "sparseVesselMasks_results"
+    nnunet_raw = "nnUNet_raw"
+    nnunet_results = "nnUNet_results"

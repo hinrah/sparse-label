@@ -1,0 +1,13 @@
+{
+ "channel_names": {
+   "0": "T1"
+ },
+ "labels": {
+   "background": 8,
+   "Wall": 2,
+   "Lumen": 4,
+   "ignore": 6
+ },
+ "numTraining": 1,
+ "file_ending": ".nii.gz"
+ }

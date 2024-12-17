@@ -1,4 +1,3 @@
-import os
 from unittest import TestCase
 from unittest.mock import patch, mock_open, MagicMock
 
@@ -7,7 +6,7 @@ from networkx import DiGraph
 from networkx.readwrite import json_graph
 
 from case import Case
-from constants import Contours, Folders, data_raw, Endings
+from constants import Contours, Endings
 
 
 class TestCase(TestCase):
@@ -73,7 +72,8 @@ class TestCase(TestCase):
     @patch('builtins.open', new_callable=mock_open, read_data='{"inner_contour": [[0, 0, 0]], "outer_contour": [[1, 1, 1]]}')
     @patch('case.os.path.join', return_value='mocked_path')
     def test_load_raw_cross_sections_with_valid_data(self, mock_join, mock_open):
-        case = Case('test_case', 'test_dataset')
+        dataset_config_mock = MagicMock()
+        case = Case('test_case', dataset_config_mock)
         result = case._load_raw_cross_sections()
         expected = {
             "inner_contour": [[0, 0, 0]],
@@ -84,20 +84,22 @@ class TestCase(TestCase):
     @patch('case.nib.load')
     @patch('case.os.path.join')
     def test__load_image(self, mock_join, mock_nib_load):
-        case = Case('test_case', 'test_dataset')
+        dataset_config_mock = MagicMock()
+        case = Case('test_case', dataset_config_mock)
         case._load_image()
 
-        mock_join.assert_called_once_with(data_raw, 'test_dataset', Folders.IMAGES, 'test_case' + Endings.CHANNEL_ZERO + Endings.NIFTI)
+        mock_join.assert_called_once_with(dataset_config_mock.images_path, 'test_case' + Endings.CHANNEL_ZERO + Endings.NIFTI)
         mock_nib_load.assert_called_once_with(mock_join.return_value)
         self.assertEqual(case.image, mock_nib_load.return_value)
 
     @patch('builtins.open', new_callable=mock_open, read_data='{"directed": true, "multigraph": false, "graph": {}, "nodes": [{"id": 1}, {"id": 2}], "edges": [{"source": 1, "target": 2}]}')
     @patch('case.os.path.join', return_value='mocked_path')
     def test__load_centerline(self, mock_join, mock_open):
-        case = Case('test_case', 'test_dataset')
+        dataset_config_mock = MagicMock()
+        case = Case('test_case', dataset_config_mock)
         case._load_centerline()
 
-        mock_join.assert_called_once_with(data_raw, 'test_dataset', Folders.CENTERLINES, 'test_case' + Endings.JSON)
+        mock_join.assert_called_once_with(dataset_config_mock.centerlines_path, 'test_case' + Endings.JSON)
         mock_open.assert_called_once_with('mocked_path', 'r')
         self.assertIsInstance(case.centerline, DiGraph)
         self.assertEqual(len(case.centerline.nodes), 2)

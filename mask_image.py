@@ -1,26 +1,26 @@
 import numpy as np
 
-from constants import Labels
-
+UNPROCESSED = -1
 
 
 class SparseMaskImage:
-    def __init__(self, shape, affine):
+    def __init__(self, shape, affine, dataset_config):
+        self._dataset_config = dataset_config
         self._shape = shape
         self._affine = affine
         self._voxel_center_points = None
-        self._mask = np.ones(shape, dtype=np.int8).reshape((-1, 1)) * Labels.UNPROCESSED
+        self._mask = np.ones(shape, dtype=np.int8).reshape((-1, 1)) * UNPROCESSED
 
     @property
     def mask(self):
         out = self._mask.reshape(self._shape)
-        return np.where(out == Labels.UNPROCESSED, Labels.UNKNOWN, out)
+        return np.where(out == UNPROCESSED, self._dataset_config.ignore_value, out)
 
     def set_sparse_mask(self, idx, label):
-        label = np.where(label == Labels.UNPROCESSED, self._mask[idx], label)  # needed to make ensure unprocessed labels are not overwriting processed labels
-        self._mask[idx] = np.where(self._mask[idx] == Labels.UNPROCESSED, label, self._mask[idx])
-        label = np.where(self._mask[idx] == Labels.UNKNOWN, Labels.UNKNOWN, label)
-        self._mask[idx] = np.where(self._mask[idx] == label, label, Labels.UNKNOWN)
+        label = np.where(label == UNPROCESSED, self._mask[idx], label)  # needed to make ensure unprocessed labels are not overwriting processed labels
+        self._mask[idx] = np.where(self._mask[idx] == UNPROCESSED, label, self._mask[idx])
+        label = np.where(self._mask[idx] == self._dataset_config.ignore_value, self._dataset_config.ignore_value, label)
+        self._mask[idx] = np.where(self._mask[idx] == label, label, self._dataset_config.ignore_value)
 
     @property
     def affine(self):

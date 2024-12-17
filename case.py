@@ -9,7 +9,7 @@ from networkx.readwrite import json_graph
 from scipy.spatial import cKDTree
 from skimage import measure
 
-from constants import Contours, Endings, data_raw, Folders, Labels, data_results
+from constants import Contours, Endings
 from cross_section import CrossSection
 from mask_image import homogenous, de_homgenize
 
@@ -44,23 +44,20 @@ class CrossSectionReader:
 
 
 class EvaluationCase:
-    def __init__(self, case_id, dataset, **kwargs):
+    def __init__(self, case_id, dataset_config):
         self._centerline_sensitivity = None
         self.case_id = case_id
-        self.dataset = dataset
+        self.dataset_config = dataset_config
         self.prediction = None
-        trainer = kwargs.get("trainer", Folders.DEFAULT_TRAINER)
-        config = kwargs.get("config", Folders.DEFAULT_CONFIG)
-        plans = kwargs.get("plans", Folders.DEFAULT_PLANS)
-        postprocessed = kwargs.get("postprocessed")
-        result_folder = Folders.SEPERATOR.join([trainer, plans, config])
-        self.prediction_path = os.path.join(data_results, self.dataset, result_folder, Folders.CROSS_VALIDATION_RESULTS)
-        if postprocessed:
-            self.prediction_path = os.path.join(self.prediction_path, Folders.POSTPROCESSED)
-        
-        self._case = Case(case_id, dataset)
+        self._case = Case(case_id, self.dataset_config)
         self.__lumen_mesh = None
         self.__outer_mesh = None
+        self.__lumen_mesh_tree = None
+        self.__outer_mesh_tree = None
+
+    @property
+    def prediction_volume(self):
+        return self.prediction.get_fdata().squeeze()
 
     def load(self):
         self._case.load()
@@ -68,19 +65,33 @@ class EvaluationCase:
 
     def _load_prediction(self):
         file_name = self.case_id + Endings.NIFTI
-        prediction_path = os.path.join(self.prediction_path, file_name)
+        prediction_path = os.path.join(self.dataset_config.prediction_path, file_name)
         self.prediction = nib.load(prediction_path)
+
+    @property
+    def lumen_mesh_tree(self):
+        if self.__lumen_mesh_tree is None:
+            np.random.seed(1337)
+            self.__lumen_mesh_tree = cKDTree(self.lumen_mesh.sample(10000000))
+        return self.__lumen_mesh_tree
+
+    @property
+    def outer_mesh_tree(self):
+        if self.__outer_mesh_tree is None:
+            np.random.seed(1337)
+            self.__outer_mesh_tree = cKDTree(self.outer_mesh.sample(10000000))
+        return self.__outer_mesh_tree
 
     @property
     def lumen_mesh(self):
         if self.__lumen_mesh is None:
-            self.__lumen_mesh = self._get_mesh(self.prediction, [Labels.LUMEN])
+            self.__lumen_mesh = self._get_mesh([self.dataset_config.lumen_value])
         return self.__lumen_mesh
 
     @property
     def outer_mesh(self):
         if self.__outer_mesh is None:
-            self.__outer_mesh = self._get_mesh(self.prediction, [Labels.LUMEN, Labels.WALL])
+            self.__outer_mesh = self._get_mesh([self.dataset_config.lumen_value, self.dataset_config.wall_value])
         return self.__outer_mesh
 
     @property
@@ -93,7 +104,7 @@ class EvaluationCase:
 
         points_bigger_zero = np.min(points_v, axis=1) > 0
         sum_bigger_zero = np.sum(points_bigger_zero)
-        points_smaller_shape = np.min(self._case.image_shape - points_v - 1 , axis=1) > 0
+        points_smaller_shape = np.min(self._case.image_shape[:3] - points_v - 1 , axis=1) > 0
         sum_smaller_shape= np.sum(points_smaller_shape)
 
         valid_points = np.nonzero(np.logical_and(points_bigger_zero, points_smaller_shape)) 
@@ -110,7 +121,7 @@ class EvaluationCase:
         if np.min(min) < 0:
             return False
         
-        if np.min(self._case.image_shape - max - 1) < 0:
+        if np.min(self._case.image_shape[:3] - max - 1) < 0:
             return False
         
         return True
@@ -129,23 +140,26 @@ class EvaluationCase:
         return self._centerline_sensitivity
     
     def _calculate_centerline_sensitivity(self):
-        inside_mesh = self.lumen_mesh.contains(self.all_centerline_points())
-        return np.sum(inside_mesh) / len(inside_mesh)
+        points_h = homogenous(self.all_centerline_points())
+        points_v = np.round(de_homgenize(points_h @ np.linalg.inv(self.prediction.affine).T)).astype(np.int16)
+        inside_lumen = np.sum(self.prediction_volume[points_v[:, 0], points_v[:, 1], points_v[:, 2]] == self.dataset_config.lumen_value)
+        return inside_lumen / points_v.shape[0]
 
-    def _get_mesh(self, prediction, label_values):
-        binary_prediction = np.isin(prediction.get_fdata(), label_values)
+
+    def _get_mesh(self, label_values):
+        binary_prediction = np.isin(self.prediction_volume, label_values)
         verts, faces, normals, _ = measure.marching_cubes(binary_prediction, level=0.5)
 
         verts_h = homogenous(verts)
-        verts_w = de_homgenize(verts_h @ prediction.affine.T)
+        verts_w = de_homgenize(verts_h @ self.prediction.affine.T)
 
         return trimesh.Trimesh(vertices=verts_w, faces=faces, vertex_normals=normals)
 
 
 class Case:
-    def __init__(self, case_id, dataset, **kwargs):
+    def __init__(self, case_id, dataset_config, **kwargs):
         self.case_id = case_id
-        self.dataset = dataset
+        self.dataset_config = dataset_config
         self.image = None
         self.cross_sections = []
         self.centerline = None
@@ -162,30 +176,30 @@ class Case:
             reader = CrossSectionReader(raw_cross_section)
             if reader.lumen_contour_points is None:
                 continue
-            self.cross_sections.append(CrossSection(identifier, reader.lumen_contour_points, reader.wall_contour_points, ending_normal=reader.ending_normal))
+            self.cross_sections.append(CrossSection(self.dataset_config, identifier, reader.lumen_contour_points, reader.wall_contour_points, ending_normal=reader.ending_normal))
 
     def _load_raw_cross_sections(self):
         file_name = self.case_id + Endings.JSON
-        contour_path = os.path.join(data_raw, self.dataset, Folders.CONTOURS, file_name)
+        contour_path = os.path.join(self.dataset_config.contours_path, file_name)
         with open(contour_path, "r") as file:
             contours = json.load(file)
         return contours
 
     def _load_image(self):
         file_name = self.case_id + Endings.CHANNEL_ZERO + Endings.NIFTI
-        image_path = os.path.join(data_raw, self.dataset, Folders.IMAGES, file_name)
+        image_path = os.path.join(self.dataset_config.images_path, file_name)
         self.image = nib.load(image_path)
 
     def _load_centerline(self):
         file_name = self.case_id + Endings.JSON
-        centerline_path = os.path.join(data_raw, self.dataset, Folders.CENTERLINES, file_name)
+        centerline_path = os.path.join(self.dataset_config.centerlines_path, file_name)
         with open(centerline_path, "r") as file:
             centerline_raw = json.load(file)
         self.centerline = json_graph.node_link_graph(centerline_raw, link="edges")
 
     @property
     def image_shape(self):
-        return self.image.shape[:3]
+        return self.image.shape
 
     @property
     def affine(self):
@@ -234,9 +248,9 @@ class Case:
 
 
 class CaseLoader:
-    def __init__(self, dataset, case_type, **kwargs):
+    def __init__(self, dataset_config, case_type, **kwargs):
         self.case_ids = []
-        self._dataset = dataset
+        self._dataset_config = dataset_config
         self._search_cases()
         self.index = 0
         self._case_type = case_type
@@ -245,7 +259,7 @@ class CaseLoader:
     def _search_cases(self):
         self.case_ids = []
         file_name_search = "*" + Endings.CHANNEL_ZERO + Endings.NIFTI
-        for path in glob(os.path.join(data_raw, self._dataset, Folders.IMAGES, file_name_search)):
+        for path in glob(os.path.join(self._dataset_config.images_path, file_name_search)):
             case_id = os.path.basename(path)[:-len(Endings.CHANNEL_ZERO) - len(Endings.NIFTI)]
             self.case_ids.append(case_id)
 
@@ -257,7 +271,7 @@ class CaseLoader:
         if self.index < len(self.case_ids):
             case_id = self.case_ids[self.index]
             self.index += 1
-            case = self._case_type(case_id, self._dataset, **self.kwargs)
+            case = self._case_type(case_id, self._dataset_config, **self.kwargs)
             case.load()
             return case
         else:

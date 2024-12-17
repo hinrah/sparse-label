@@ -1,0 +1,152 @@
+[
+  {
+    "identifier": "test__RIGHT_1",
+    "dice_coefficients": {
+      "background": NaN,
+      "Wall": NaN,
+      "Lumen": NaN
+    },
+    "hausdorff_distances": {
+      "background": Infinity,
+      "Wall": 0.18840256616046913,
+      "Lumen": 0.3525811267893991
+    },
+    "hausdorff_distances_95": {
+      "background": Infinity,
+      "Wall": 0.1685285602612944,
+      "Lumen": 0.32444725919834483
+    },
+    "average_contour_distances": {
+      "background": Infinity,
+      "Wall": 0.07397454006734921,
+      "Lumen": 0.13912366626294234
+    },
+    "centerline_sensitivity": 0.9029649595687331,
+    "is_correct": true
+  },
+  {
+    "identifier": "test__RIGHT_2",
+    "dice_coefficients": {
+      "background": NaN,
+      "Wall": NaN,
+      "Lumen": NaN
+    },
+    "hausdorff_distances": {
+      "background": Infinity,
+      "Wall": 0.39193842824203573,
+      "Lumen": 0.30962029156072435
+    },
+    "hausdorff_distances_95": {
+      "background": Infinity,
+      "Wall": 0.28264034347771905,
+      "Lumen": 0.26700023312155924
+    },
+    "average_contour_distances": {
+      "background": Infinity,
+      "Wall": 0.1273894059968937,
+      "Lumen": 0.1473872675230936
+    },
+    "centerline_sensitivity": 0.9029649595687331,
+    "is_correct": true
+  },
+  {
+    "identifier": "test__RIGHT_3",
+    "dice_coefficients": {
+      "background": NaN,
+      "Wall": NaN,
+      "Lumen": NaN
+    },
+    "hausdorff_distances": {
+      "background": Infinity,
+      "Wall": 0.6305280167217859,
+      "Lumen": 0.4285056080156797
+    },
+    "hausdorff_distances_95": {
+      "background": Infinity,
+      "Wall": 0.4934879578518748,
+      "Lumen": 0.2792209968040259
+    },
+    "average_contour_distances": {
+      "background": Infinity,
+      "Wall": 0.1759395500657316,
+      "Lumen": 0.11475391883230682
+    },
+    "centerline_sensitivity": 0.9029649595687331,
+    "is_correct": true
+  },
+  {
+    "identifier": "test__RIGHT_4",
+    "dice_coefficients": {
+      "background": NaN,
+      "Wall": NaN,
+      "Lumen": NaN
+    },
+    "hausdorff_distances": {
+      "background": Infinity,
+      "Wall": 0.8490386515674472,
+      "Lumen": 0.29238152695431613
+    },
+    "hausdorff_distances_95": {
+      "background": Infinity,
+      "Wall": 0.6846998958052153,
+      "Lumen": 0.22908704465502655
+    },
+    "average_contour_distances": {
+      "background": Infinity,
+      "Wall": 0.1505654810052497,
+      "Lumen": 0.11472288283427783
+    },
+    "centerline_sensitivity": 0.9029649595687331,
+    "is_correct": true
+  },
+  {
+    "identifier": "test__RIGHT_5",
+    "dice_coefficients": {
+      "background": NaN,
+      "Wall": NaN,
+      "Lumen": NaN
+    },
+    "hausdorff_distances": {
+      "background": Infinity,
+      "Wall": 0.3178736960296521,
+      "Lumen": 0.30473596944196596
+    },
+    "hausdorff_distances_95": {
+      "background": Infinity,
+      "Wall": 0.25933847379694935,
+      "Lumen": 0.2195686015630191
+    },
+    "average_contour_distances": {
+      "background": Infinity,
+      "Wall": 0.07478497842430205,
+      "Lumen": 0.08469624890841622
+    },
+    "centerline_sensitivity": 0.9029649595687331,
+    "is_correct": true
+  },
+  {
+    "identifier": "test__RIGHT_6",
+    "dice_coefficients": {
+      "background": NaN,
+      "Wall": NaN,
+      "Lumen": NaN
+    },
+    "hausdorff_distances": {
+      "background": Infinity,
+      "Wall": 0.27051014093673,
+      "Lumen": 0.2882326016098847
+    },
+    "hausdorff_distances_95": {
+      "background": Infinity,
+      "Wall": 0.23420925632415543,
+      "Lumen": 0.23806982116963235
+    },
+    "average_contour_distances": {
+      "background": Infinity,
+      "Wall": 0.09322786016135894,
+      "Lumen": 0.09407263825293988
+    },
+    "centerline_sensitivity": 0.9029649595687331,
+    "is_correct": true
+  }
+]

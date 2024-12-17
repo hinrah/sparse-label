@@ -1,4 +1,7 @@
 import numpy as np
+from dataclasses import asdict
+
+from evaluation.metrics import Metrics
 
 
 class SegmentationResults:
@@ -53,3 +56,19 @@ class SegmentationResults:
 
     def centerline_sensitivities(self):
         return [result.centerline_sensitivity for result in self.valid_results]
+
+    def _convert_to_serializable(self, obj):
+        if isinstance(obj, dict):
+            return {k: self._convert_to_serializable(v) for k, v in obj.items()}
+        elif isinstance(obj, list):
+            return [self._convert_to_serializable(v) for v in obj]
+        elif isinstance(obj, np.generic):
+            return obj.item()
+        else:
+            return obj
+
+    def to_json(self):
+        return self._convert_to_serializable([asdict(result) for result in self._results])
+
+    def from_json(self, json_dict):
+        self._results = [Metrics(**one_result) for one_result in json_dict]

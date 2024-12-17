@@ -2,53 +2,57 @@ import itertools
 import math
 
 import numpy as np
-import trimesh
 from evalutils.stats import mean_contour_distance, hausdorff_distance, percentile_hausdorff_distance, dice_from_confusion_matrix
 from scipy import ndimage
 from scipy.ndimage import map_coordinates
 from scipy.spatial import cKDTree
 
-from constants import Labels
+from constants import DatasetInfo
 from cross_section import CrossSection
 from evaluation.metrics import Metrics
 
 
 class SegmentationEvaluator2DContourOn3DLabel:
-    def __init__(self, classes):
-        self._classes = classes
+    def __init__(self, dataset_config):
+        self._classes = dataset_config.classes
 
     def evaluate(self, truth: CrossSection, case):
-        return Metrics(dice_coefficients={class_value: np.nan for class_value in self._classes},
+        return Metrics(identifier=str(case.case_id) + "__" + str(truth.identifier),
+                       dice_coefficients={class_label: np.nan for class_label in self._classes},
                        hausdorff_distances=self._evaluate_metric(truth, case, self._hausdorff_distance),
                        hausdorff_distances_95=self._evaluate_metric(truth, case, self._hausdorff_distance_95),
                        average_contour_distances=self._evaluate_metric(truth, case, self._average_surface_distance),
                        centerline_sensitivity=case.centerline_sensitivity,
                        is_correct=True)
 
-    def _hausdorff_distance(self, mesh, points):
-        return np.max(np.abs(trimesh.proximity.signed_distance(mesh, points)))
+    def _hausdorff_distance(self, predicted_points, contour_points):
+        distances, _ = predicted_points.query(contour_points, k=1)
+        return np.max(distances)
 
-    def _average_surface_distance(self, mesh, points):
-        return np.mean(np.abs(trimesh.proximity.signed_distance(mesh, points)))
+    def _average_surface_distance(self, predicted_points, contour_points):
+        distances, _ = predicted_points.query(contour_points, k=1)
+        return np.mean(distances)
 
-    def _hausdorff_distance_95(self, mesh, points):
-        return np.percentile(np.abs(trimesh.proximity.signed_distance(mesh, points)), 95)
+    def _hausdorff_distance_95(self, predicted_points, contour_points):
+        distances, _ = predicted_points.query(contour_points, k=1)
+        return np.percentile(distances, 95)
 
     def _evaluate_metric(self, truth, case, metric):
         metrics = {}
-        for class_value in self._classes:
-            if class_value == Labels.BACKGROUND:
-                metrics[class_value] = np.inf
-            if class_value == Labels.WALL:
-                metrics[class_value] = metric(case.outer_mesh, truth.outer_wall_points)
-            if class_value == Labels.LUMEN:
-                metrics[class_value] = metric(case.lumen_mesh, truth.lumen_points)
+        for class_label in self._classes:
+            if class_label == DatasetInfo.BACKGROUND:
+                metrics[class_label] = np.inf
+            if class_label == DatasetInfo.WALL:
+                metrics[class_label] = metric(case.outer_mesh_tree, truth.outer_wall_points)
+            if class_label == DatasetInfo.LUMEN:
+                metrics[class_label] = metric(case.lumen_mesh_tree, truth.lumen_points)
         return metrics
 
 
 class SegmentationEvaluator2DContourOn2DCrossSections:
-    def __init__(self, classes, mpr_resolution, mpr_shape):
-        self._classes = classes
+    def __init__(self, dataset_config, mpr_resolution, mpr_shape):
+        self._dataset_config = dataset_config
+        self._classes = dataset_config.classes
         self._mpr_resolution = mpr_resolution
         self._mpr_shape = mpr_shape
 
@@ -65,7 +69,8 @@ class SegmentationEvaluator2DContourOn2DCrossSections:
             mean_contour_distances.values())
         is_correct = np.inf not in all_values
 
-        return Metrics(dice_coefficients=dice_coefficients,
+        return Metrics(str(case.case_id) + "__" + str(truth.identifier),
+                       dice_coefficients=dice_coefficients,
                        hausdorff_distances=hausdorff_distances,
                        hausdorff_distances_95=hausdorff_distances_95,
                        average_contour_distances=mean_contour_distances,
@@ -82,38 +87,41 @@ class SegmentationEvaluator2DContourOn2DCrossSections:
 
     def evaluate_hausdorff_distances(self, truth: np.ndarray, prediction: np.ndarray):
         hausdorff_distances = {}
-        for class_value in self._classes:
+        for class_label in self._classes:
+            class_value = self._dataset_config.class_value_by_label(class_label)
             try:
-                hausdorff_distances[class_value] = hausdorff_distance(truth == class_value,
+                hausdorff_distances[class_label] = hausdorff_distance(truth == class_value,
                                                                       prediction == class_value,
                                                                       self._mpr_resolution)
             except ValueError:
-                hausdorff_distances[class_value] = math.inf
+                hausdorff_distances[class_label] = math.inf
         return hausdorff_distances
 
     def evaluate_hausdorff_distances_95(self, truth: np.ndarray, prediction: np.ndarray):
         hausdorff_distances = {}
-        for class_value in self._classes:
+        for class_label in self._classes:
+            class_value = self._dataset_config.class_value_by_label(class_label)
             try:
-                hausdorff_distances[class_value] = percentile_hausdorff_distance(truth == class_value,
+                hausdorff_distances[class_label] = percentile_hausdorff_distance(truth == class_value,
                                                                                  prediction == class_value,
                                                                                  percentile=0.95,
                                                                                  voxelspacing=self._mpr_resolution)
             except ValueError:
-                hausdorff_distances[class_value] = math.inf
+                hausdorff_distances[class_label] = math.inf
             except IndexError:
-                hausdorff_distances[class_value] = math.inf
+                hausdorff_distances[class_label] = math.inf
         return hausdorff_distances
 
     def evaluate_mean_contour_distances(self, truth: np.ndarray, prediction: np.ndarray):
         mean_contour_distances = {}
-        for class_value in self._classes:
+        for class_label in self._classes:
+            class_value = self._dataset_config.class_value_by_label(class_label)
             try:
-                mean_contour_distances[class_value] = mean_contour_distance(truth == class_value,
+                mean_contour_distances[class_label] = mean_contour_distance(truth == class_value,
                                                                             prediction == class_value,
                                                                             self._mpr_resolution)
             except ValueError:
-                mean_contour_distances[class_value] = math.inf
+                mean_contour_distances[class_label] = math.inf
         return mean_contour_distances
 
     def _mpr(self, cross_section, case):
@@ -131,21 +139,24 @@ class SegmentationEvaluator2DContourOn2DCrossSections:
             (grid_world_coords.reshape(-1, 3), np.ones((grid_world_coords.shape[0] * grid_world_coords.shape[1], 1)))).T
         grid_voxel_coords = grid_voxel_coords[:3].T.reshape(self._mpr_shape[1], self._mpr_shape[0], 3)
 
-        out = map_coordinates(case.prediction.get_fdata(), [grid_voxel_coords[..., i] for i in range(3)], order=1, mode='constant', cval=0)
+        out = map_coordinates(case.prediction_volume, [grid_voxel_coords[..., i] for i in range(3)], order=0, mode='constant', cval=self._dataset_config.background_value)
         return np.round(out).astype(int)
 
     def _extract_relevant_mask(self, mask):
-        labeled_mask, num_features = ndimage.label(mask != Labels.BACKGROUND)
+        import matplotlib.pyplot as plt
+        labeled_mask, num_features = ndimage.label(mask != self._dataset_config.background_value)
+
+
         center_label = labeled_mask[mask.shape[0] // 2, mask.shape[1] // 2]
         if center_label == 0:
-            return np.zeros_like(mask)
+            return np.ones_like(mask)*self._dataset_config.background_value
 
-        mask = np.where(labeled_mask == center_label, mask, Labels.BACKGROUND)
+        mask = np.where(labeled_mask == center_label, mask, self._dataset_config.background_value)
 
-        labeled_mask, num_features = ndimage.label(mask == Labels.LUMEN)
+        labeled_mask, num_features = ndimage.label(mask == self._dataset_config.lumen_value)
 
         if num_features == 0:
-            return np.zeros_like(mask)
+            return np.ones_like(mask)*self._dataset_config.background_value
 
         distances = []
         center = np.array([mask.shape[0] // 2, mask.shape[1] // 2])
@@ -154,9 +165,6 @@ class SegmentationEvaluator2DContourOn2DCrossSections:
             distance = points.query(center)[0]
             distances.append(distance)
         center_label = np.argmin(distances) + 1
-
-        if center_label == 0:
-            raise RuntimeError("this should never happen. If it does, there is a bug.")
 
         relevant_mask = labeled_mask == center_label
         irrelevant_masks = np.logical_and(labeled_mask != center_label, labeled_mask != 0)
@@ -170,11 +178,13 @@ class SegmentationEvaluator2DContourOn2DCrossSections:
 
         is_relevant = (distance_to_correct_lumen < distance_to_incorrect_lumen).reshape(mask.shape)
 
-        return np.where(is_relevant, mask, Labels.BACKGROUND)
+        return np.where(is_relevant, mask, self._dataset_config.background_value)
 
     def _get_confusion_matrix(self, truth_mask, prediction_mask):
         confusion_matrix = np.zeros((len(self._classes), len(self._classes)))
         for class_predicted, class_truth in itertools.product(self._classes, self._classes):
-            confusion_matrix[class_truth, class_predicted] = np.sum(
-                np.all(np.stack((prediction_mask == class_predicted, truth_mask == class_truth)), axis=0))
+            class_value_predicted = self._dataset_config.class_value_by_label(class_predicted)
+            class_value_truth = self._dataset_config.class_value_by_label(class_truth)
+            confusion_matrix[self._classes.index(class_truth), self._classes.index(class_predicted)] = np.sum(
+                np.all(np.stack((prediction_mask == class_value_predicted, truth_mask == class_value_truth)), axis=0))
         return confusion_matrix

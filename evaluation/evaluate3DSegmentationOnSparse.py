@@ -1,11 +1,9 @@
-import argparse
 from multiprocessing import Lock, Manager
 from multiprocessing.pool import Pool
 
 from tqdm import tqdm
 
 from case import EvaluationCase, CaseLoader
-from evaluation.segmentation_evaluator import SegmentationEvaluator2DContourOn3DLabel, SegmentationEvaluator2DContourOn2DCrossSections
 from evaluation.segmentation_results import SegmentationResults
 
 
@@ -24,7 +22,6 @@ class EvaluationProcessor:
         if self._with_wall and cross_section.outer_wall_points is None:
             return False
         return True
-        
 
     def _process_one_item_parallel(self, case):
         for cross_section in case.cross_sections:
@@ -40,15 +37,22 @@ class EvaluationProcessor:
                 pbar.update()
                 pbar.refresh()
 
+    def process_synchronous(self):
+        for case in tqdm(self._case_loader):
+            self._process_one_item_parallel(case)
 
-def evaluate_segmentations(dataset, trainer, configuration, num_threads, evaluator, postprocessed, with_wall=True):
 
+def evaluate_segmentations(dataset_config, num_threads, evaluator):
     manager = Manager()
 
-    case_loader = CaseLoader(dataset, EvaluationCase, trainer=trainer, configuration=configuration, postprocessed=postprocessed)
+    case_loader = CaseLoader(dataset_config, EvaluationCase)
 
-    processor = EvaluationProcessor(case_loader, manager, evaluator, with_wall=with_wall)
-    processor.process_parallel(num_threads=num_threads)
+    processor = EvaluationProcessor(case_loader, manager, evaluator, with_wall=dataset_config.has_wall)
+
+    if num_threads <= 1:
+        processor.process_synchronous()
+    else:
+        processor.process_parallel(num_threads=num_threads)
 
     segmentation_results = SegmentationResults()
     for segmentation_result in processor.segmentation_results:

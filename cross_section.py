@@ -2,12 +2,12 @@ import numpy as np
 from sklearn.decomposition import PCA
 from skimage.draw import polygon
 
-from constants import Labels
 from contour import Contour
 
 
 class CrossSection:
-    def __init__(self, identifier, lumen_contour, outer_wall_contour=None, ending_normal=None):
+    def __init__(self, dataset_config, identifier, lumen_contour, outer_wall_contour=None, ending_normal=None):
+        self._dataset_config = dataset_config
         self.identifier = identifier
         self._lumen_contour_points = lumen_contour
         self._outer_wall_contour_points = outer_wall_contour
@@ -91,18 +91,18 @@ class CrossSection:
         return self._outer_wall_contour.contains_point(projected_point)
 
     def create_pixel_mask(self, pixel_dims, image_shape):
-        mask = np.zeros(image_shape, dtype=np.uint8)
+        mask = np.ones(image_shape, dtype=np.uint8)*self._dataset_config.background_value
 
         if self._outer_wall_contour is not None:
             points = self._outer_wall_contour.points
             x_pixel_coord = points[:, 0] / pixel_dims[0] + image_shape[1] / 2
             y_pixel_coord = points[:, 1] / pixel_dims[1] + image_shape[1] / 2
             rr, cc = polygon(y_pixel_coord, x_pixel_coord, image_shape)
-            mask[rr, cc] = Labels.WALL
+            mask[rr, cc] = self._dataset_config.wall_value
 
         points = self._lumen_contour.points
         rr, cc = polygon(points[:, 1] / pixel_dims[1] + image_shape[1] / 2, points[:, 0] / pixel_dims[0] + image_shape[1] / 2, image_shape)
-        mask[rr, cc] = Labels.LUMEN
+        mask[rr, cc] = self._dataset_config.lumen_value
 
         return mask
 
