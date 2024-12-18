@@ -30,28 +30,24 @@ class SegmentationResults:
     def mean_average_contour_distances(self):
         return [np.mean(list(result.average_contour_distances.values())) for result in self.valid_results]
 
-    @property
-    def missed_slices(self):
-        return np.sum(np.sum())
-
     def dice_coefficients(self, class_value=None):
         if class_value:
-            return [result.dice_coefficients[class_value] for result in self.valid_results]
+            return [result.dice_coefficients.get(class_value, 0) for result in self.valid_results]
         return [list(result.dice_coefficients.values()) for result in self.valid_results]
 
     def hausdorff_distances(self, class_value=None):
         if class_value:
-            return [result.hausdorff_distances[class_value] for result in self.valid_results]
+            return [result.hausdorff_distances.get(class_value, np.inf) for result in self.valid_results]
         return [list(result.hausdorff_distances.values()) for result in self.valid_results]
 
     def hausdorff_distances_95(self, class_value=None):
         if class_value:
-            return [result.hausdorff_distances_95[class_value] for result in self.valid_results]
+            return [result.hausdorff_distances_95.get(class_value, np.inf) for result in self.valid_results]
         return [list(result.hausdorff_distances_95.values()) for result in self.valid_results]
 
     def average_contour_distances(self, class_value=None):
         if class_value:
-            return [result.average_contour_distances[class_value] for result in self.valid_results]
+            return [result.average_contour_distances.get(class_value, np.inf) for result in self.valid_results]
         return np.nan_to_num(np.array([list(result.average_contour_distances.values()) for result in self.valid_results]), nan=np.inf)
 
     def centerline_sensitivities(self):
@@ -60,12 +56,11 @@ class SegmentationResults:
     def _convert_to_serializable(self, obj):
         if isinstance(obj, dict):
             return {k: self._convert_to_serializable(v) for k, v in obj.items()}
-        elif isinstance(obj, list):
+        if isinstance(obj, list):
             return [self._convert_to_serializable(v) for v in obj]
-        elif isinstance(obj, np.generic):
+        if isinstance(obj, np.generic):
             return obj.item()
-        else:
-            return obj
+        return obj
 
     def to_json(self):
         return self._convert_to_serializable([asdict(result) for result in self._results])

@@ -9,7 +9,7 @@ from networkx.readwrite import json_graph
 from scipy.spatial import cKDTree
 from skimage import measure
 
-from constants import Contours, Endings
+from constants import Contours, Endings, ENCODING
 from cross_section import CrossSection
 from mask_image import homogenous, de_homgenize
 
@@ -43,7 +43,7 @@ class CrossSectionReader:
         return np.array(self._raw_cross_section[Contours.ENDING_NORMAL]).reshape(-1, 1)
 
 
-class EvaluationCase:
+class EvaluationCase:  # pylint: disable=too-many-instance-attributes
     def __init__(self, case_id, dataset_config):
         self._centerline_sensitivity = None
         self.case_id = case_id
@@ -113,13 +113,13 @@ class EvaluationCase:
         contour_points_h = homogenous(cross_section.all_contour_points)
         contour_points_v = de_homgenize(contour_points_h @ np.linalg.inv(self._case.affine).T)
 
-        min = np.min(contour_points_v, axis=0)
-        max = np.max(contour_points_v, axis=0)
+        minimum_voxel_position = np.min(contour_points_v, axis=0)
+        maximum_voxel_position = np.max(contour_points_v, axis=0)
 
-        if np.min(min) < 0:
+        if np.min(minimum_voxel_position) < 0:
             return False
 
-        if np.min(self._case.image_shape[:3] - max - 1) < 0:
+        if np.min(self._case.image_shape[:3] - maximum_voxel_position - 1) < 0:
             return False
 
         return True
@@ -154,7 +154,7 @@ class EvaluationCase:
 
 
 class Case:
-    def __init__(self, case_id, dataset_config, **kwargs):
+    def __init__(self, case_id, dataset_config):
         self.case_id = case_id
         self.dataset_config = dataset_config
         self.image = None
@@ -179,7 +179,7 @@ class Case:
     def _load_raw_cross_sections(self):
         file_name = self.case_id + Endings.JSON
         contour_path = os.path.join(self.dataset_config.contours_path, file_name)
-        with open(contour_path, "r") as file:
+        with open(contour_path, "r", encoding=ENCODING) as file:
             contours = json.load(file)
         return contours
 
@@ -191,7 +191,7 @@ class Case:
     def _load_centerline(self):
         file_name = self.case_id + Endings.JSON
         centerline_path = os.path.join(self.dataset_config.centerlines_path, file_name)
-        with open(centerline_path, "r") as file:
+        with open(centerline_path, "r", encoding=ENCODING) as file:
             centerline_raw = json.load(file)
         self.centerline = json_graph.node_link_graph(centerline_raw, link="edges")
 
@@ -272,8 +272,7 @@ class CaseLoader:
             case = self._case_type(case_id, self._dataset_config, **self.kwargs)
             case.load()
             return case
-        else:
-            raise StopIteration
+        raise StopIteration
 
     def __len__(self):
         return len(self.case_ids)

@@ -6,10 +6,10 @@ from networkx import DiGraph
 from networkx.readwrite import json_graph
 
 from case import Case
-from constants import Contours, Endings
+from constants import Contours, Endings, ENCODING
 
 
-class TestCase(TestCase):
+class TestClassCase(TestCase):
     @patch.object(Case, '_load_image')
     @patch.object(Case, '_load_cross_sections')
     @patch.object(Case, '_load_centerline')
@@ -71,7 +71,7 @@ class TestCase(TestCase):
 
     @patch('builtins.open', new_callable=mock_open, read_data='{"inner_contour": [[0, 0, 0]], "outer_contour": [[1, 1, 1]]}')
     @patch('case.os.path.join', return_value='mocked_path')
-    def test_load_raw_cross_sections_with_valid_data(self, mock_join, mock_open):
+    def test_load_raw_cross_sections_with_valid_data(self, *_):
         dataset_config_mock = MagicMock()
         case = Case('test_case', dataset_config_mock)
         result = case._load_raw_cross_sections()
@@ -95,13 +95,13 @@ class TestCase(TestCase):
     @patch('builtins.open', new_callable=mock_open,
            read_data='{"directed": true, "multigraph": false, "graph": {}, "nodes": [{"id": 1}, {"id": 2}], "edges": [{"source": 1, "target": 2}]}')
     @patch('case.os.path.join', return_value='mocked_path')
-    def test__load_centerline(self, mock_join, mock_open):
+    def test__load_centerline(self, mock_join, mock_open_):
         dataset_config_mock = MagicMock()
         case = Case('test_case', dataset_config_mock)
         case._load_centerline()
 
         mock_join.assert_called_once_with(dataset_config_mock.centerlines_path, 'test_case' + Endings.JSON)
-        mock_open.assert_called_once_with('mocked_path', 'r')
+        mock_open_.assert_called_once_with('mocked_path', 'r', encoding=ENCODING)
         self.assertIsInstance(case.centerline, DiGraph)
         self.assertEqual(len(case.centerline.nodes), 2)
         self.assertEqual(len(case.centerline.edges), 1)
@@ -163,7 +163,7 @@ class TestCase(TestCase):
 
     @patch.object(Case, '_all_contour_points')
     @patch.object(Case, '_load_raw_cross_sections')
-    def test_max_contour_centerline_distance(self, mock_load_raw_cross_sections, mock_all_contour_points):
+    def test_max_contour_centerline_distance(self, _, mock_all_contour_points):
         mock_all_contour_points.return_value = np.array([[0, 0, 0], [1, 1, 1], [2, 2, 2]])
         case = Case('test_case', 'test_dataset')
         case.cross_sections = [MagicMock(plane_center=np.array([0, 0, 0])),
@@ -175,7 +175,7 @@ class TestCase(TestCase):
 
     @patch.object(Case, '_all_contour_points')
     @patch.object(Case, '_load_raw_cross_sections')
-    def test_max_contour_centerline_distance_with_empty_points(self, mock_load_raw_cross_sections, mock_all_contour_points):
+    def test_max_contour_centerline_distance_with_empty_points(self, _, mock_all_contour_points):
         test_cases = [
             (np.array([]), np.array([[1, 1, 1], [3, 3, 3]])),
             ([MagicMock(plane_center=np.array([0, 0, 0]))], np.array([]))

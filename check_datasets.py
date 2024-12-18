@@ -35,8 +35,8 @@ class LumenInsideWall:
                 if not cross_section.lumen_is_inside_wall():
                     raise DataErrorNotAllDataUsable(
                         "case {} has a lumen that is not inside the wall for cross_section {}.".format(case.case_id, cross_section.identifier))
-            except ContourDoesNotExistError:
-                raise DataErrorNotAllDataUsable("case {} cross_section {} has no wall contour.".format(case.case_id, cross_section.identifier))
+            except ContourDoesNotExistError as exc:
+                raise DataErrorNotAllDataUsable("case {} cross_section {} has no wall contour.".format(case.case_id, cross_section.identifier)) from exc
 
 
 class CrossSectionWithoutLumenContour:

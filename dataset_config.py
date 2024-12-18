@@ -2,7 +2,7 @@ import json
 import os
 from pathlib import Path
 
-from constants import EnvironmentVars, Folders, DatasetInfo
+from constants import EnvironmentVars, Folders, DatasetInfo, ENCODING
 from glob import glob
 
 
@@ -24,7 +24,7 @@ class DatasetConfig:
     @property
     def dataset_info(self):
         if self._dataset_info is None:
-            with open(self.dataset_info_path) as file:
+            with open(self.dataset_info_path, encoding=ENCODING) as file:
                 self._dataset_info = json.load(file)
         return self._dataset_info
 

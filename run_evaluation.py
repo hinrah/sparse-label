@@ -5,6 +5,7 @@ import os
 import numpy as np
 import pandas as pd
 
+from constants import ENCODING
 from dataset_config import DatasetConfig
 from evaluation.evaluate3DSegmentationOnSparse import evaluate_segmentations
 from evaluation.segmentation_evaluator import SegmentationEvaluator2DContourOn3DLabel, SegmentationEvaluator2DContourOn2DCrossSections
@@ -66,7 +67,7 @@ def main():
         else:
             evaluator = SegmentationEvaluator2DContourOn3DLabel(dataset_config)
         segmentation_results = evaluate_segmentations(dataset_config, args.n, evaluator)
-        with open(os.path.join(dataset_config.prediction_path, f"evaluation_results_{args.e}.json"), "w") as file:
+        with open(os.path.join(dataset_config.prediction_path, f"evaluation_results_{args.e}.json"), "w", encoding=ENCODING) as file:
             json.dump(segmentation_results.to_json(), file)
 
 

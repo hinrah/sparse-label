@@ -27,7 +27,7 @@ class LabelCrossSection:
             self._label_background()
             self._mask.set_sparse_mask(self._label_idx, self._labels)
         except ContourDoesNotExistError:
-            return
+            pass
 
     def _label_foreground(self):
         potential_foreground_points = self._label_points[self._potential_foreground_idx]

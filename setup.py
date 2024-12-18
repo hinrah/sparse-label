@@ -18,11 +18,13 @@ setup(
         'scikit-image',
         'scikit-learn',
         'shapely',
-        'evalutils'
+        'evalutils',
+        'pandas'
     ],
     extras_require={
         'dev': [
             'flake8',
+            'pylint'
         ],
     },
     # entry_points={

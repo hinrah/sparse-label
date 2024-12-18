@@ -1,3 +1,6 @@
+ENCODING = "ascii"
+
+
 class Folders:
     IMAGES = "images"
     LABELS = "labels"

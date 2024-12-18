@@ -14,7 +14,7 @@ class Processor:
         case_handler.apply(case)
 
     def process(self):
-        for i, case in enumerate(self._case_loader):
+        for case in self._case_loader:
             self._case_handler.apply(case)
 
     def process_parallel(self, num_threads=4):

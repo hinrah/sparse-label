@@ -1,6 +1,6 @@
 import numpy as np
 from sklearn.decomposition import PCA
-from skimage.draw import polygon
+from skimage.draw import polygon  # pylint: disable=no-name-in-module
 
 from contour import Contour
 
@@ -29,8 +29,7 @@ class CrossSection:
     def all_contour_points(self):
         if self._outer_wall_contour_points is None:
             return self._lumen_contour_points
-        else:
-            return np.vstack((self._lumen_contour_points, self._outer_wall_contour_points))
+        return np.vstack((self._lumen_contour_points, self._outer_wall_contour_points))
 
     @property
     def lumen_points(self):
@@ -118,8 +117,7 @@ class CrossSection:
         normal_direction = np.dot(self.plane_normal[:, 0], self._ending_normal[:, 0]) > 0
         if normal_direction:
             return self.plane_normal
-        else:
-            return -self.plane_normal
+        return -self.plane_normal
 
 
 class ContourDoesNotExistError(AttributeError):

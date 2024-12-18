@@ -59,7 +59,7 @@ class SegmentationEvaluator2DContourOn2DCrossSections:
     def evaluate(self, truth: CrossSection, case):
         mpr = self._mpr(truth, case)
         truth_mask = truth.create_pixel_mask(self._mpr_resolution, self._mpr_shape)
-        relevant_mask = self._extract_relevant_mask(mpr)
+        relevant_mask = self._cut_mask_between_lumen(mpr)
 
         dice_coefficients = self.evaluate_dice_coefficients(truth_mask, relevant_mask)
         hausdorff_distances = self.evaluate_hausdorff_distances(truth_mask, relevant_mask)
@@ -143,19 +143,19 @@ class SegmentationEvaluator2DContourOn2DCrossSections:
                               cval=self._dataset_config.background_value)
         return np.round(out).astype(int)
 
-    def _extract_relevant_mask(self, mask):
-        labeled_mask, num_features = ndimage.label(mask != self._dataset_config.background_value)
+    def _extract_center_component(self, mask):
+        labeled_mask, _ = ndimage.label(mask != self._dataset_config.background_value)
 
         center_label = labeled_mask[mask.shape[0] // 2, mask.shape[1] // 2]
         if center_label == 0:
-            return np.ones_like(mask) * self._dataset_config.background_value
+            raise ValueError
 
-        mask = np.where(labeled_mask == center_label, mask, self._dataset_config.background_value)
+        return np.where(labeled_mask == center_label, mask, self._dataset_config.background_value)
 
+    def _classify_pixel_by_lumen(self, mask):
         labeled_mask, num_features = ndimage.label(mask == self._dataset_config.lumen_value)
-
         if num_features == 0:
-            return np.ones_like(mask) * self._dataset_config.background_value
+            raise ValueError
 
         distances = []
         center = np.array([mask.shape[0] // 2, mask.shape[1] // 2])
@@ -171,13 +171,25 @@ class SegmentationEvaluator2DContourOn2DCrossSections:
         relevant_pixel = cKDTree(np.argwhere(relevant_mask))
         irrelevant_pixel = cKDTree(np.argwhere(irrelevant_masks))
 
+        return relevant_pixel, irrelevant_pixel
+
+    def _cut_mask_between_lumen(self, mask):
+        try:
+            mask = self._extract_center_component(mask)
+            relevant_pixel, irrelevant_pixel = self._classify_pixel_by_lumen(mask)
+            mask = self._extract_relevant_mask(mask, irrelevant_pixel, relevant_pixel)
+        except ValueError:
+            return np.ones_like(mask) * self._dataset_config.background_value
+
+        return mask
+
+    def _extract_relevant_mask(self, mask, irrelevant_pixel, relevant_pixel):
         all_pixel_coords = np.array(list(np.ndindex(mask.shape)))
         distance_to_correct_lumen = relevant_pixel.query(all_pixel_coords)[0]
         distance_to_incorrect_lumen = irrelevant_pixel.query(all_pixel_coords)[0]
-
         is_relevant = (distance_to_correct_lumen < distance_to_incorrect_lumen).reshape(mask.shape)
-
-        return np.where(is_relevant, mask, self._dataset_config.background_value)
+        relevant_mask = np.where(is_relevant, mask, self._dataset_config.background_value)
+        return relevant_mask
 
     def _get_confusion_matrix(self, truth_mask, prediction_mask):
         confusion_matrix = np.zeros((len(self._classes), len(self._classes)))
