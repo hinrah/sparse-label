@@ -1,8 +1,6 @@
 import argparse
 import json
-from glob import glob
 import os
-from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -10,7 +8,6 @@ import pandas as pd
 from dataset_config import DatasetConfig
 from evaluation.evaluate3DSegmentationOnSparse import evaluate_segmentations
 from evaluation.segmentation_evaluator import SegmentationEvaluator2DContourOn3DLabel, SegmentationEvaluator2DContourOn2DCrossSections
-from constants import data_raw
 
 
 def save_results_to_csv(path_to_save, metrics):
@@ -43,23 +40,6 @@ evaluators = {
     "3D": SegmentationEvaluator2DContourOn3DLabel,
     "2D": SegmentationEvaluator2DContourOn2DCrossSections,
 }
-
-def datset_name_for_dataset_id(dataset_id):
-    try: 
-        dataset_id = int(dataset_id)
-    except ValueError:
-        return dataset_id
-    
-    print(os.path.join(data_raw, "Dataset{:03}_*/".format(dataset_id)))
-
-    datasets = list(glob(os.path.join(data_raw, "Dataset{:03}_*/".format(dataset_id))))
-    if len(datasets) > 1:
-        raise RuntimeError(f"There are more than one dataset with id {dataset_id}")
-    
-    if len(datasets) == 0:
-        raise RuntimeError(f"There are no datasets with id {dataset_id}")
-
-    return Path(datasets[0]).name
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

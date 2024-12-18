@@ -145,7 +145,6 @@ class EvaluationCase:
         inside_lumen = np.sum(self.prediction_volume[points_v[:, 0], points_v[:, 1], points_v[:, 2]] == self.dataset_config.lumen_value)
         return inside_lumen / points_v.shape[0]
 
-
     def _get_mesh(self, label_values):
         binary_prediction = np.isin(self.prediction_volume, label_values)
         verts, faces, normals, _ = measure.marching_cubes(binary_prediction, level=0.5)

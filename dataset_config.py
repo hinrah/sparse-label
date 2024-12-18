@@ -27,11 +27,8 @@ class DatasetConfig:
                 self._dataset_info = json.load(file)
         return self._dataset_info
 
-
     def _get_name_from_id(self, dataset_id):
-        print(os.path.join(data_raw, "Dataset{:03}_*/".format(dataset_id)))
-
-        datasets = list(glob(os.path.join(data_raw, "Dataset{:03}_*/".format(dataset_id))))
+        datasets = list(glob(os.path.join(self.data_raw, "Dataset{:03}_*/".format(dataset_id))))
         if len(datasets) > 1:
             raise RuntimeError(f"There are more than one dataset with id {dataset_id}")
 
@@ -44,9 +41,10 @@ class DatasetConfig:
         result = os.environ.get(first_choice)
         if result is None:
             print(f"{first_choice} is not defined {second_choice} is now used.")
-        result = os.environ.get(second_choice)
-        if result is None:
-            print(f"{second_choice} is not defined as well. Sparse vessel masks can not be created.")
+            result = os.environ.get(second_choice)
+            if result is None:
+                print(f"{second_choice} is not defined as well. Sparse vessel masks can not be created.")
+
         return result
 
     @property

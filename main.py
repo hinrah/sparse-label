@@ -50,7 +50,7 @@ def create_sparse_label():
 
     strategies = [LabelCrossSections(dataset_config, args.t / 2, with_wall=args.wall, radius=args.br),
                   LabelCenterline(dataset_config, args.cr, dataset_config.lumen_value),
-                  LabelCenterline(dataset_config, args.vr, dataset_config.wall_value)]
+                  LabelCenterline(dataset_config, args.vr, dataset_config.background_value)]
 
     if args.ending:
         strategies.append(LabelEndingCrossSections(dataset_config, args.t / 2, radius=args.br))
