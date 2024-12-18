@@ -1,7 +1,6 @@
 import json
 from unittest import TestCase
 import os
-from constants import DatasetInfo
 from dataset_config import DatasetConfig
 from evaluation.evaluate3DSegmentationOnSparse import evaluate_segmentations
 from evaluation.segmentation_evaluator import SegmentationEvaluator2DContourOn2DCrossSections, SegmentationEvaluator2DContourOn3DLabel
@@ -13,7 +12,8 @@ class TestDefaultLabelCreator(TestCase):
         self.test_dir = os.path.dirname(os.path.abspath(__file__))
 
     def test_evaluate_label_2D(self):
-        dataset_config = DatasetConfig("Dataset001_test", prediction_sub_path=os.path.join("test_trainer__nnUNetPlans__test_config","crossval_results_folds_0_1_2_3_4"))
+        dataset_config = DatasetConfig("Dataset001_test",
+                                       prediction_sub_path=os.path.join("test_trainer__nnUNetPlans__test_config", "crossval_results_folds_0_1_2_3_4"))
         dataset_config.data_raw = os.path.join(os.path.dirname(os.path.abspath(__file__)), "test_data")
         dataset_config.data_results = os.path.join(os.path.dirname(os.path.abspath(__file__)), "test_data_results")
 
@@ -26,7 +26,8 @@ class TestDefaultLabelCreator(TestCase):
         self.assertEqual(json.dumps(expected_segmentation_results), json.dumps(segmentation_results.to_json()))
 
     def test_evaluate_label_3D(self):
-        dataset_config = DatasetConfig("Dataset001_test", prediction_sub_path=os.path.join("test_trainer__nnUNetPlans__test_config","crossval_results_folds_0_1_2_3_4"))
+        dataset_config = DatasetConfig("Dataset001_test",
+                                       prediction_sub_path=os.path.join("test_trainer__nnUNetPlans__test_config", "crossval_results_folds_0_1_2_3_4"))
         dataset_config.data_raw = os.path.join(os.path.dirname(os.path.abspath(__file__)), "test_data")
         dataset_config.data_results = os.path.join(os.path.dirname(os.path.abspath(__file__)), "test_data_results")
 
@@ -39,7 +40,8 @@ class TestDefaultLabelCreator(TestCase):
         self.assertEqual(json.dumps(expected_segmentation_results), json.dumps(segmentation_results.to_json()))
 
     def test_evaluate_label_3D_arbitrary_label_values(self):
-        dataset_config = DatasetConfig("Dataset002_test_other_values", prediction_sub_path=os.path.join("test_trainer__nnUNetPlans__test_config","crossval_results_folds_0_1_2_3_4"))
+        dataset_config = DatasetConfig("Dataset002_test_other_values",
+                                       prediction_sub_path=os.path.join("test_trainer__nnUNetPlans__test_config", "crossval_results_folds_0_1_2_3_4"))
         dataset_config.data_raw = os.path.join(os.path.dirname(os.path.abspath(__file__)), "test_data")
         dataset_config.data_results = os.path.join(os.path.dirname(os.path.abspath(__file__)), "test_data_results")
 
@@ -52,7 +54,8 @@ class TestDefaultLabelCreator(TestCase):
         self.assertEqual(json.dumps(expected_segmentation_results), json.dumps(segmentation_results.to_json()))
 
     def test_evaluate_label_2D_arbitrary_label_values(self):
-        dataset_config = DatasetConfig("Dataset002_test_other_values", prediction_sub_path=os.path.join("test_trainer__nnUNetPlans__test_config","crossval_results_folds_0_1_2_3_4"))
+        dataset_config = DatasetConfig("Dataset002_test_other_values",
+                                       prediction_sub_path=os.path.join("test_trainer__nnUNetPlans__test_config", "crossval_results_folds_0_1_2_3_4"))
         dataset_config.data_raw = os.path.join(os.path.dirname(os.path.abspath(__file__)), "test_data")
         dataset_config.data_results = os.path.join(os.path.dirname(os.path.abspath(__file__)), "test_data_results")
 

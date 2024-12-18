@@ -14,7 +14,7 @@ class TestCase(TestCase):
     @patch.object(Case, '_load_cross_sections')
     @patch.object(Case, '_load_centerline')
     def test_Case_construction_does_not_load(self, mock_load_centerline, mock_load_cross_sections, mock_load_image):
-        case = Case('test_case', 'test_dataset')
+        _ = Case('test_case', 'test_dataset')
         mock_load_image.assert_not_called()
         mock_load_cross_sections.assert_not_called()
         mock_load_centerline.assert_not_called()
@@ -92,7 +92,8 @@ class TestCase(TestCase):
         mock_nib_load.assert_called_once_with(mock_join.return_value)
         self.assertEqual(case.image, mock_nib_load.return_value)
 
-    @patch('builtins.open', new_callable=mock_open, read_data='{"directed": true, "multigraph": false, "graph": {}, "nodes": [{"id": 1}, {"id": 2}], "edges": [{"source": 1, "target": 2}]}')
+    @patch('builtins.open', new_callable=mock_open,
+           read_data='{"directed": true, "multigraph": false, "graph": {}, "nodes": [{"id": 1}, {"id": 2}], "edges": [{"source": 1, "target": 2}]}')
     @patch('case.os.path.join', return_value='mocked_path')
     def test__load_centerline(self, mock_join, mock_open):
         dataset_config_mock = MagicMock()
@@ -119,10 +120,11 @@ class TestCase(TestCase):
 
     def test_voxel_size(self):
         case = Case('test_case', 'test_dataset')
-        case.image = MagicMock(header = {'pixdim': [0, 1, 2, 3, 4, 5, 6]})
+        case.image = MagicMock(header={'pixdim': [0, 1, 2, 3, 4, 5, 6]})
 
-        self.assertEqual(case.voxel_size, [1,2,3])
-    @patch.object(Case, '_all_centerline_points')
+        self.assertEqual(case.voxel_size, [1, 2, 3])
+
+    @patch.object(Case, 'all_centerline_points')
     @patch.object(Case, '_all_lumen_points')
     def test_min_lumen_centerline_distance_zero(self, mock_all_lumen_points, mock_all_centerline_points):
         mock_all_centerline_points.return_value = np.array([[0, 0, 0], [1, 1, 1], [2, 2, 2]])
@@ -134,7 +136,7 @@ class TestCase(TestCase):
 
     @patch.object(Case, 'all_centerline_points')
     @patch.object(Case, '_all_lumen_points')
-    def test_min_lumen_centerline_distance_zero(self, mock_all_lumen_points, mock_all_centerline_points):
+    def test_min_lumen_centerline_distance(self, mock_all_lumen_points, mock_all_centerline_points):
         mock_all_centerline_points.return_value = np.array([[0, 0, 1], [2, 2, 1], [3, 2, 2]])
         mock_all_lumen_points.return_value = np.array([[0, 0, 0], [7, 7, 7]])
 

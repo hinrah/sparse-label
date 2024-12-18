@@ -97,18 +97,16 @@ class EvaluationCase:
     @property
     def cross_sections(self):
         return [cross_section for cross_section in self._case.cross_sections if self._cross_section_completely_inside_volume(cross_section)]
-    
+
     def _filter_for_points_in_image(self, points):
         points_h = homogenous(points)
         points_v = de_homgenize(points_h @ np.linalg.inv(self._case.affine).T)
 
         points_bigger_zero = np.min(points_v, axis=1) > 0
-        sum_bigger_zero = np.sum(points_bigger_zero)
-        points_smaller_shape = np.min(self._case.image_shape[:3] - points_v - 1 , axis=1) > 0
-        sum_smaller_shape= np.sum(points_smaller_shape)
+        points_smaller_shape = np.min(self._case.image_shape[:3] - points_v - 1, axis=1) > 0
 
-        valid_points = np.nonzero(np.logical_and(points_bigger_zero, points_smaller_shape)) 
-        
+        valid_points = np.nonzero(np.logical_and(points_bigger_zero, points_smaller_shape))
+
         return points[valid_points]
 
     def _cross_section_completely_inside_volume(self, cross_section):
@@ -120,10 +118,10 @@ class EvaluationCase:
 
         if np.min(min) < 0:
             return False
-        
+
         if np.min(self._case.image_shape[:3] - max - 1) < 0:
             return False
-        
+
         return True
 
     @property
@@ -132,13 +130,13 @@ class EvaluationCase:
 
     def all_centerline_points(self):
         return self._filter_for_points_in_image(self._case.all_centerline_points())
-    
+
     @property
     def centerline_sensitivity(self):
         if self._centerline_sensitivity is None:
             self._centerline_sensitivity = self._calculate_centerline_sensitivity()
         return self._centerline_sensitivity
-    
+
     def _calculate_centerline_sensitivity(self):
         points_h = homogenous(self.all_centerline_points())
         points_v = np.round(de_homgenize(points_h @ np.linalg.inv(self.prediction.affine).T)).astype(np.int16)
@@ -175,7 +173,8 @@ class Case:
             reader = CrossSectionReader(raw_cross_section)
             if reader.lumen_contour_points is None:
                 continue
-            self.cross_sections.append(CrossSection(self.dataset_config, identifier, reader.lumen_contour_points, reader.wall_contour_points, ending_normal=reader.ending_normal))
+            self.cross_sections.append(
+                CrossSection(self.dataset_config, identifier, reader.lumen_contour_points, reader.wall_contour_points, ending_normal=reader.ending_normal))
 
     def _load_raw_cross_sections(self):
         file_name = self.case_id + Endings.JSON

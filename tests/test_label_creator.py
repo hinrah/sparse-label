@@ -1,5 +1,7 @@
 from unittest import TestCase
 import os
+import shutil
+
 import nibabel as nib
 import numpy as np
 from case import Case
@@ -17,14 +19,14 @@ class TestDefaultLabelCreator(TestCase):
         dataset_config = DatasetConfig("Dataset001_test")
         dataset_config.data_raw = os.path.join(os.path.dirname(os.path.abspath(__file__)), "test_data")
 
-        all_with_wall = [LabelCrossSections(dataset_config, 0.6/2, with_wall=True, radius=20),
+        all_with_wall = [LabelCrossSections(dataset_config, 0.6 / 2, with_wall=True, radius=20),
                          LabelCenterline(dataset_config, 0.6, dataset_config.lumen_value),
                          LabelCenterline(dataset_config, 15, dataset_config.background_value),
-                         LabelEndingCrossSections(dataset_config, 0.6/2, 15)]
-        all_without_wall = [LabelCrossSections(dataset_config, 0.6/2, with_wall=False, radius=20),
+                         LabelEndingCrossSections(dataset_config, 0.6 / 2, 15)]
+        all_without_wall = [LabelCrossSections(dataset_config, 0.6 / 2, with_wall=False, radius=20),
                             LabelCenterline(dataset_config, 0.6, dataset_config.lumen_value),
                             LabelCenterline(dataset_config, 15, dataset_config.background_value),
-                            LabelEndingCrossSections(dataset_config, 0.6/2, 15)]
+                            LabelEndingCrossSections(dataset_config, 0.6 / 2, 15)]
 
         all_with_wall_label = nib.load(os.path.join(dataset_config.raw_path, "expected_labels", "test_with_wall.nii.gz"))
         all_without_wall_label = nib.load(os.path.join(dataset_config.raw_path, "expected_labels", "test_without_wall.nii.gz"))
@@ -35,7 +37,6 @@ class TestDefaultLabelCreator(TestCase):
 
         for name, strategies, expected_result in tests:
             with self.subTest(name):
-
                 label_creator = LabelCreator(strategies, dataset_config)
 
                 test_case = Case("test", dataset_config)
@@ -48,4 +49,4 @@ class TestDefaultLabelCreator(TestCase):
                 np.testing.assert_array_equal(true_labels.affine, expected_result.affine)
 
     def tearDown(self) -> None:
-        pass#shutil.rmtree(os.path.join(self.test_dir, "test_data", "Dataset001_test", "labelsTr"))
+        shutil.rmtree(os.path.join(self.test_dir, "test_data", "Dataset001_test", "labelsTr"))

@@ -7,7 +7,8 @@ from glob import glob
 
 
 class DatasetConfig:
-    def __init__(self, dataset_name, folder_postfix="Tr", prediction_sub_path=os.path.join("nnUNetTrainer__nnUNetPlans__3d_fullres", "crossval_results_folds_0_1_2_3_4")):
+    def __init__(self, dataset_name, folder_postfix="Tr",
+                 prediction_sub_path=os.path.join("nnUNetTrainer__nnUNetPlans__3d_fullres", "crossval_results_folds_0_1_2_3_4")):
         self.data_raw = self._get_from_environment_variable(EnvironmentVars.sparse_vessel_masks_raw, EnvironmentVars.nnunet_raw)
         self.data_results = self._get_from_environment_variable(EnvironmentVars.sparse_vessel_masks_results, EnvironmentVars.nnunet_results)
         self._folder_postfix = folder_postfix

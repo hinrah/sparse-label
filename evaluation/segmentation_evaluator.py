@@ -139,24 +139,23 @@ class SegmentationEvaluator2DContourOn2DCrossSections:
             (grid_world_coords.reshape(-1, 3), np.ones((grid_world_coords.shape[0] * grid_world_coords.shape[1], 1)))).T
         grid_voxel_coords = grid_voxel_coords[:3].T.reshape(self._mpr_shape[1], self._mpr_shape[0], 3)
 
-        out = map_coordinates(case.prediction_volume, [grid_voxel_coords[..., i] for i in range(3)], order=0, mode='constant', cval=self._dataset_config.background_value)
+        out = map_coordinates(case.prediction_volume, [grid_voxel_coords[..., i] for i in range(3)], order=0, mode='constant',
+                              cval=self._dataset_config.background_value)
         return np.round(out).astype(int)
 
     def _extract_relevant_mask(self, mask):
-        import matplotlib.pyplot as plt
         labeled_mask, num_features = ndimage.label(mask != self._dataset_config.background_value)
-
 
         center_label = labeled_mask[mask.shape[0] // 2, mask.shape[1] // 2]
         if center_label == 0:
-            return np.ones_like(mask)*self._dataset_config.background_value
+            return np.ones_like(mask) * self._dataset_config.background_value
 
         mask = np.where(labeled_mask == center_label, mask, self._dataset_config.background_value)
 
         labeled_mask, num_features = ndimage.label(mask == self._dataset_config.lumen_value)
 
         if num_features == 0:
-            return np.ones_like(mask)*self._dataset_config.background_value
+            return np.ones_like(mask) * self._dataset_config.background_value
 
         distances = []
         center = np.array([mask.shape[0] // 2, mask.shape[1] // 2])

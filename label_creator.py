@@ -25,4 +25,3 @@ class LabelCreator:
         for strategy in self._strategies:
             strategy.apply(mask, case)
         _save_label(mask.mask, case)
-

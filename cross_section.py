@@ -91,7 +91,7 @@ class CrossSection:
         return self._outer_wall_contour.contains_point(projected_point)
 
     def create_pixel_mask(self, pixel_dims, image_shape):
-        mask = np.ones(image_shape, dtype=np.uint8)*self._dataset_config.background_value
+        mask = np.ones(image_shape, dtype=np.uint8) * self._dataset_config.background_value
 
         if self._outer_wall_contour is not None:
             points = self._outer_wall_contour.points
@@ -115,7 +115,7 @@ class CrossSection:
         if not self.is_ending_cross_section:
             raise RuntimeError("This cross section is not an ending cross section")
 
-        normal_direction = np.dot(self.plane_normal[:,0], self._ending_normal[:,0]) > 0
+        normal_direction = np.dot(self.plane_normal[:, 0], self._ending_normal[:, 0]) > 0
         if normal_direction:
             return self.plane_normal
         else:

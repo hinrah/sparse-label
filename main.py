@@ -46,7 +46,7 @@ def create_sparse_label():
         args.vr = get_max_contour_centerline_distance(case_loader) * 1.2
 
     if not args.br:
-        args.br = args.vr*1.2
+        args.br = args.vr * 1.2
 
     strategies = [LabelCrossSections(dataset_config, args.t / 2, with_wall=args.wall, radius=args.br),
                   LabelCenterline(dataset_config, args.cr, dataset_config.lumen_value),
@@ -86,6 +86,7 @@ def check_dataset():
 
     logger.info("If you do not see any error messages above, the dataset is valid.")
 
+
 if __name__ == '__main__':
-    #check_dataset()
+    # check_dataset()
     create_sparse_label()

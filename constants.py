@@ -1,6 +1,3 @@
-import os
-
-
 class Folders:
     IMAGES = "images"
     LABELS = "labels"
@@ -23,15 +20,18 @@ class DatasetInfo:
     WALL = "Wall"
     IGNORE = "ignore"
 
+
 class Endings:
     JSON = ".json"
     NIFTI = ".nii.gz"
     CHANNEL_ZERO = "_0000"
 
+
 class Contours:
     INNER = "inner_contour"
     OUTER = "outer_contour"
     ENDING_NORMAL = "ending_normal"
+
 
 class EnvironmentVars:
     sparse_vessel_masks_raw = "sparseVesselMasks_raw"

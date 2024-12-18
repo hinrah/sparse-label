@@ -34,8 +34,10 @@ class LabelCrossSection:
         if potential_foreground_points.size == 0:
             raise ContourDoesNotExistError
         if self._with_wall:
-            self._labels[self._potential_foreground_idx] = np.where(self._cross_section.projected_inside_wall(potential_foreground_points), self._dataset_config.wall_value, self._labels[self._potential_foreground_idx])
-        self._labels[self._potential_foreground_idx] = np.where(self._cross_section.projected_inside_lumen(potential_foreground_points), self._dataset_config.lumen_value, self._labels[self._potential_foreground_idx])
+            self._labels[self._potential_foreground_idx] = np.where(self._cross_section.projected_inside_wall(potential_foreground_points),
+                                                                    self._dataset_config.wall_value, self._labels[self._potential_foreground_idx])
+        self._labels[self._potential_foreground_idx] = np.where(self._cross_section.projected_inside_lumen(potential_foreground_points),
+                                                                self._dataset_config.lumen_value, self._labels[self._potential_foreground_idx])
 
     def _label_background(self):
         labels_with_background = np.where(self._labels == UNPROCESSED, self._dataset_config.background_value, self._labels)
@@ -70,6 +72,7 @@ class LabelCrossSection:
             point_distance = np.linalg.norm(self._label_points - self._cross_section.plane_center, axis=1)
             self.__potential_foreground_idx = (point_distance < max_contour_distance).nonzero()[0]
         return self.__potential_foreground_idx
+
 
 class LabelCrossSections:
     def __init__(self, dataset_config, distance_threshold, with_wall=True, radius=np.inf):
@@ -128,6 +131,7 @@ class LabelEndingCrossSections:
     def _label_ending_cross_sections(self, mask, cross_section):
         labels = np.ones((mask.voxel_center_points.shape[0], 1)) * UNPROCESSED
         background_voxels = np.nonzero(np.logical_and(np.dot(mask.voxel_center_points - cross_section.plane_center, cross_section.ending_normal) > 0,
-                                                      (np.linalg.norm(mask.voxel_center_points - cross_section.plane_center, axis=1) <= self._radius).reshape((-1,1))))[0]
+                                                      (np.linalg.norm(mask.voxel_center_points - cross_section.plane_center, axis=1) <= self._radius).reshape(
+                                                          (-1, 1))))[0]
         labels[background_voxels] = self._dataset_config.background_value
         mask.set_mask(labels)
