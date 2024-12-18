@@ -3,8 +3,8 @@ import os
 import numpy as np
 import nibabel as nib
 
-from constants import Endings
-from mask_image import SparseMaskImage
+from sparselabel.constants import Endings
+from sparselabel.data_handlers.mask_image import SparseMaskImage
 
 
 def _save_label(mask, case):

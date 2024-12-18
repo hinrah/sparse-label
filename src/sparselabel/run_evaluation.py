@@ -5,10 +5,10 @@ import os
 import numpy as np
 import pandas as pd
 
-from constants import ENCODING
-from dataset_config import DatasetConfig
-from evaluation.evaluate3DSegmentationOnSparse import evaluate_segmentations
-from evaluation.segmentation_evaluator import SegmentationEvaluator2DContourOn3DLabel, SegmentationEvaluator2DContourOn2DCrossSections
+from sparselabel.constants import ENCODING
+from sparselabel.dataset_config import DatasetConfig
+from sparselabel.evaluation.evaluate3DSegmentationOnSparse import evaluate_segmentations
+from sparselabel.evaluation.segmentation_evaluator import SegmentationEvaluator2DContourOn3DLabel, SegmentationEvaluator2DContourOn2DCrossSections
 
 
 def save_results_to_csv(path_to_save, metrics):

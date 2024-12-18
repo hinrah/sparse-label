@@ -1,7 +1,7 @@
 import numpy as np
 from scipy.spatial import cKDTree
 
-from edge import Edge
+from sparselabel.data_handlers.edge import Edge
 
 
 class CrossSectionCenterline:

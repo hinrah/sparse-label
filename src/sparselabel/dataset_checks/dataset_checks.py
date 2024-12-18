@@ -1,8 +1,8 @@
 import networkx as nx
 from networkx import DiGraph
 
-from cross_section import ContourDoesNotExistError
-from cross_section_centerline import CrossSectionCenterline
+from sparselabel.data_handlers.cross_section import ContourDoesNotExistError
+from sparselabel.data_handlers.cross_section_centerline import CrossSectionCenterline
 
 
 class DataErrorNotAllDataUsable(Exception):

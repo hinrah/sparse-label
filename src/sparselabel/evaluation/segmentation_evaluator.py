@@ -7,9 +7,9 @@ from scipy import ndimage
 from scipy.ndimage import map_coordinates
 from scipy.spatial import cKDTree
 
-from constants import DatasetInfo
-from cross_section import CrossSection
-from evaluation.metrics import Metrics
+from sparselabel.constants import DatasetInfo
+from sparselabel.data_handlers.cross_section import CrossSection
+from sparselabel.evaluation.metrics import Metrics
 
 
 class SegmentationEvaluator2DContourOn3DLabel:

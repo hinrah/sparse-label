@@ -3,8 +3,9 @@ from multiprocessing.pool import Pool
 
 from tqdm import tqdm
 
-from case import EvaluationCase, CaseLoader
-from evaluation.segmentation_results import SegmentationResults
+from sparselabel.data_handlers.case import EvaluationCase
+from sparselabel.case_loader import CaseLoader
+from sparselabel.evaluation.segmentation_results import SegmentationResults
 
 
 class EvaluationProcessor:

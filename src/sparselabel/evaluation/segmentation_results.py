@@ -1,7 +1,7 @@
 import numpy as np
 from dataclasses import asdict
 
-from evaluation.metrics import Metrics
+from sparselabel.evaluation.metrics import Metrics
 
 
 class SegmentationResults:

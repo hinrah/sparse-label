@@ -5,8 +5,8 @@ import numpy as np
 from networkx import DiGraph
 from networkx.readwrite import json_graph
 
-from case import Case
-from constants import Contours, Endings, ENCODING
+from sparselabel.data_handlers.case import Case
+from sparselabel.constants import Contours, Endings, ENCODING
 
 
 class TestClassCase(TestCase):
@@ -70,7 +70,7 @@ class TestClassCase(TestCase):
         self.assertEqual(len(case.cross_sections), 0)
 
     @patch('builtins.open', new_callable=mock_open, read_data='{"inner_contour": [[0, 0, 0]], "outer_contour": [[1, 1, 1]]}')
-    @patch('case.os.path.join', return_value='mocked_path')
+    @patch('sparselabel.data_handlers.case.os.path.join', return_value='mocked_path')
     def test_load_raw_cross_sections_with_valid_data(self, *_):
         dataset_config_mock = MagicMock()
         case = Case('test_case', dataset_config_mock)
@@ -81,8 +81,8 @@ class TestClassCase(TestCase):
         }
         self.assertEqual(result, expected)
 
-    @patch('case.nib.load')
-    @patch('case.os.path.join')
+    @patch('sparselabel.data_handlers.case.nib.load')
+    @patch('sparselabel.data_handlers.case.os.path.join')
     def test__load_image(self, mock_join, mock_nib_load):
         dataset_config_mock = MagicMock()
         case = Case('test_case', dataset_config_mock)
@@ -94,7 +94,7 @@ class TestClassCase(TestCase):
 
     @patch('builtins.open', new_callable=mock_open,
            read_data='{"directed": true, "multigraph": false, "graph": {}, "nodes": [{"id": 1}, {"id": 2}], "edges": [{"source": 1, "target": 2}]}')
-    @patch('case.os.path.join', return_value='mocked_path')
+    @patch('sparselabel.data_handlers.case.os.path.join', return_value='mocked_path')
     def test__load_centerline(self, mock_join, mock_open_):
         dataset_config_mock = MagicMock()
         case = Case('test_case', dataset_config_mock)

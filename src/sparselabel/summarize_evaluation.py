@@ -4,8 +4,8 @@ import json
 import numpy as np
 import pandas as pd
 
-from constants import ENCODING, DatasetInfo
-from evaluation.segmentation_results import SegmentationResults
+from sparselabel.constants import ENCODING, DatasetInfo
+from sparselabel.evaluation.segmentation_results import SegmentationResults
 
 
 def save_results_to_csv(path_to_save, experiements):

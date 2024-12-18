@@ -2,7 +2,7 @@ import numpy as np
 from sklearn.decomposition import PCA
 from skimage.draw import polygon  # pylint: disable=no-name-in-module
 
-from contour import Contour
+from sparselabel.data_handlers.contour import Contour
 
 
 class CrossSection:

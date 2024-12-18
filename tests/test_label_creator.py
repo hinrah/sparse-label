@@ -4,10 +4,10 @@ import shutil
 
 import nibabel as nib
 import numpy as np
-from case import Case
-from dataset_config import DatasetConfig
-from label_creator import LabelCreator
-from labeling_strategies import LabelCrossSections, LabelCenterline, LabelEndingCrossSections
+from sparselabel.data_handlers.case import Case
+from sparselabel.dataset_config import DatasetConfig
+from sparselabel.label_strategies.label_creator import LabelCreator
+from sparselabel.label_strategies.labeling_strategies import LabelCrossSections, LabelCenterline, LabelEndingCrossSections
 
 
 class TestDefaultLabelCreator(TestCase):

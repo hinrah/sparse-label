@@ -1,5 +1,5 @@
-from logging_config import logger
-from check_datasets import DataErrorNotAllDataUsable, DataErrorThatLeadsToWrongLabels
+from sparselabel.logging_config import logger
+from sparselabel.dataset_checks.dataset_checks import DataErrorNotAllDataUsable, DataErrorThatLeadsToWrongLabels
 
 
 class DatasetTester:

@@ -1,9 +1,9 @@
 import json
 import os
+from glob import glob
 from pathlib import Path
 
-from constants import EnvironmentVars, Folders, DatasetInfo, ENCODING
-from glob import glob
+from sparselabel.constants import EnvironmentVars, Folders, DatasetInfo, ENCODING
 
 
 class DatasetConfig:

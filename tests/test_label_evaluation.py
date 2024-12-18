@@ -2,10 +2,10 @@ import json
 from unittest import TestCase
 import os
 
-from constants import ENCODING
-from dataset_config import DatasetConfig
-from evaluation.evaluate3DSegmentationOnSparse import evaluate_segmentations
-from evaluation.segmentation_evaluator import SegmentationEvaluator2DContourOn2DCrossSections, SegmentationEvaluator2DContourOn3DLabel
+from sparselabel.constants import ENCODING
+from sparselabel.dataset_config import DatasetConfig
+from sparselabel.evaluation.evaluate3DSegmentationOnSparse import evaluate_segmentations
+from sparselabel.evaluation.segmentation_evaluator import SegmentationEvaluator2DContourOn2DCrossSections, SegmentationEvaluator2DContourOn3DLabel
 
 
 class TestDefaultLabelCreator(TestCase):

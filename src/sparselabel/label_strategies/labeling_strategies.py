@@ -2,9 +2,9 @@ import numpy as np
 
 from scipy.spatial import cKDTree
 
-from cross_section import ContourDoesNotExistError
-from cross_section_centerline import CrossSectionCenterline
-from mask_image import UNPROCESSED
+from sparselabel.data_handlers.cross_section import ContourDoesNotExistError
+from sparselabel.data_handlers.cross_section_centerline import CrossSectionCenterline
+from sparselabel.data_handlers.mask_image import UNPROCESSED
 
 
 class LabelCrossSection:

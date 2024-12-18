@@ -1,15 +1,16 @@
-from check_datasets import CenterlineInsideLumen, LumenInsideWall, NumArteries
-from case import CaseLoader, Case
-from dataset_characteristics_extraction import get_max_voxel_size, get_min_lumen_centerline_distance, get_max_contour_centerline_distance
-from dataset_config import DatasetConfig
-from dataset_tester import DatasetTester
-from label_creator import LabelCreator
-from logging_config import logger
+from sparselabel.dataset_checks.dataset_checks import CenterlineInsideLumen, LumenInsideWall, NumArteries
+from sparselabel.data_handlers.case import Case
+from sparselabel.case_loader import CaseLoader
+from sparselabel.dataset_characteristics_extraction import get_max_voxel_size, get_min_lumen_centerline_distance, get_max_contour_centerline_distance
+from sparselabel.dataset_config import DatasetConfig
+from sparselabel.dataset_checks.dataset_tester import DatasetTester
+from sparselabel.label_strategies.label_creator import LabelCreator
+from sparselabel.logging_config import logger
 
 import argparse
 
-from labeling_strategies import LabelCenterline, LabelCrossSections, LabelEndingCrossSections
-from processor import Processor
+from sparselabel.label_strategies.labeling_strategies import LabelCenterline, LabelCrossSections, LabelEndingCrossSections
+from sparselabel.processor import Processor
 
 
 def create_sparse_label():
