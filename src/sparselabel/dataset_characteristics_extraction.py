@@ -7,7 +7,7 @@ def get_max_voxel_size(cases):
 
     max_voxel_size = 0
     for case in cases:
-        max_voxel_size = max(max_voxel_size, case.voxel_size)
+        max_voxel_size = max(max_voxel_size, max(case.voxel_size))
     return max_voxel_size
 
 
