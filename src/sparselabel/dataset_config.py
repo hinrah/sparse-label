@@ -105,6 +105,8 @@ class DatasetConfig:
 
     @property
     def classes(self):
-        if self.has_wall:
-            return [DatasetInfo.BACKGROUND, DatasetInfo.WALL, DatasetInfo.LUMEN]
-        return [DatasetInfo.BACKGROUND, DatasetInfo.LUMEN]
+        classes = []
+        for possible_class in [DatasetInfo.BACKGROUND, DatasetInfo.WALL, DatasetInfo.LUMEN]:
+            if possible_class in self.dataset_info[DatasetInfo.LABELS]:
+                classes.append(possible_class)
+        return classes

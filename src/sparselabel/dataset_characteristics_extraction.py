@@ -7,8 +7,17 @@ def get_max_voxel_size(cases):
 
     max_voxel_size = 0
     for case in cases:
-        max_voxel_size = max(max_voxel_size, max(case.voxel_size))
+        max_voxel_size = max(max_voxel_size, max(case.voxel_size))  # pylint: disable=nested-min-max
     return max_voxel_size
+
+
+def get_median_voxel_size(cases):
+    if not cases:
+        raise ValueError("There are no cases to extract a voxel size from")
+    voxel_sizes = []
+    for case in cases:
+        voxel_sizes.append(case.voxel_size)
+    return np.median(np.array(voxel_sizes).flatten())
 
 
 def get_min_lumen_centerline_distance(cases):
