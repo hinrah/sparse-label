@@ -110,3 +110,13 @@ class DatasetConfig:
             if possible_class in self.dataset_info[DatasetInfo.LABELS]:
                 classes.append(possible_class)
         return classes
+    
+    @property
+    def channels(self):
+        return self._dataset_info[DatasetInfo.CHANNELS]
+
+    def channel_by_name(self, name):
+        for value, name in self.channels.items():
+            if name == name:
+                return value
+        raise ValueError("Channel name does not exist")

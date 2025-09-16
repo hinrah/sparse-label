@@ -12,6 +12,8 @@ from sparselabel.constants import Contours, Endings, ENCODING
 from sparselabel.data_handlers.cross_section import CrossSection
 from sparselabel.data_handlers.mask_image import homogenous, de_homgenize
 
+from scipy.ndimage import binary_dilation
+
 
 class CrossSectionReader:
     def __init__(self, raw_cross_section):
@@ -45,6 +47,7 @@ class CrossSectionReader:
 class EvaluationCase:  # pylint: disable=too-many-instance-attributes
     def __init__(self, case_id, dataset_config):
         self._centerline_sensitivity = None
+        self._lumen_background_percentage = None
         self.case_id = case_id
         self.dataset_config = dataset_config
         self.prediction = None
@@ -57,6 +60,10 @@ class EvaluationCase:  # pylint: disable=too-many-instance-attributes
     @property
     def prediction_volume(self):
         return self.prediction.get_fdata().squeeze()
+    
+    @property
+    def channel_image(self):
+        return self._case.channel_image
 
     def load(self):
         self._case.load()
@@ -96,6 +103,26 @@ class EvaluationCase:  # pylint: disable=too-many-instance-attributes
     @property
     def cross_sections(self):
         return [cross_section for cross_section in self._case.cross_sections if self._cross_section_completely_inside_volume(cross_section)]
+
+    def true_outer_wall_points(self):
+        outer_wall_points = []
+        for cross_section in self.cross_sections:
+            if cross_section.outer_wall_points is not None:
+                outer_wall_points.append(cross_section.outer_wall_points)
+        if outer_wall_points:
+            return np.vstack(outer_wall_points)
+        else:
+            return None
+    
+    def true_lumen_points(self):
+        lumen_points = []
+        for cross_section in self.cross_sections:
+            if cross_section.lumen_points is not None:
+                lumen_points.append(cross_section.lumen_points)
+        if lumen_points:
+            return np.vstack(lumen_points)
+        else:
+            return None
 
     def _filter_for_points_in_image(self, points):
         points_h = homogenous(points)
@@ -150,18 +177,47 @@ class EvaluationCase:  # pylint: disable=too-many-instance-attributes
         verts_w = de_homgenize(verts_h @ self.prediction.affine.T)
 
         return trimesh.Trimesh(vertices=verts_w, faces=faces, vertex_normals=normals)
+    
+    @property
+    def lumen_background_percentage(self):
+        if self._lumen_background_percentage is None:
+            self._compute_lumen_background_percentage()
+        return self._lumen_background_percentage
+    
+    def _compute_lumen_background_percentage(self):
+        lumen = self.prediction_volume == self.dataset_config.lumen_value
+        non_lumen = self.prediction_volume != self.dataset_config.lumen_value
+        background = self.prediction_volume == self.dataset_config.background_value
 
+        structure = np.zeros((3, 3, 3), dtype=bool) 
+        structure[1,1,1] = 1
+        structure[0,1,1] = 1
+        structure[1,0,1] = 1
+        structure[1,1,0] = 1
+        structure[2,1,1] = 1
+        structure[1,2,1] = 1
+        structure[1,1,2] = 1
+
+        dilated_lumen = binary_dilation(lumen, structure=structure)
+
+        touching_background = dilated_lumen & background
+        touching = dilated_lumen & non_lumen
+        
+        self._lumen_background_percentage =  np.sum(touching_background)/np.sum(touching)
+        
 
 class Case:
     def __init__(self, case_id, dataset_config):
         self.case_id = case_id
         self.dataset_config = dataset_config
         self.image = None
+        self.channel_image = None
         self.cross_sections = []
         self.centerline = None
 
     def load(self):
         self._load_image()
+        self._load_channel_image()
         self._load_cross_sections()
         self._load_centerline()
 
@@ -186,6 +242,17 @@ class Case:
         file_name = self.case_id + Endings.CHANNEL_ZERO + Endings.NIFTI
         image_path = os.path.join(self.dataset_config.images_path, file_name)
         self.image = nib.load(image_path)
+
+    def _load_channel_image(self):
+        images = []
+
+        for channel in self.dataset_config.channels.keys():
+            file_name = self.case_id + "_" + f"{int(channel):04d}" + Endings.NIFTI
+            image_path = os.path.join(self.dataset_config.images_path, file_name)
+            images.append(nib.load(image_path).get_fdata().squeeze())
+
+        self.channel_image = np.stack(images)
+
 
     def _load_centerline(self):
         file_name = self.case_id + Endings.JSON

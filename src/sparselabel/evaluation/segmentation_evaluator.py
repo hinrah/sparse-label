@@ -12,6 +12,44 @@ from sparselabel.data_handlers.cross_section import CrossSection
 from sparselabel.evaluation.metrics import Metrics
 
 
+class SegmentationEvaluatorAllContoursOn3DLabel:
+    def __init__(self, dataset_config):
+        self._classes = dataset_config.classes
+
+    def evaluate(self, case):
+        return Metrics(identifier=str(case.case_id),
+                       dice_coefficients={class_label: np.nan for class_label in self._classes},
+                       hausdorff_distances=self._evaluate_metric(case, self._hausdorff_distance),
+                       hausdorff_distances_95=self._evaluate_metric(case, self._hausdorff_distance_95),
+                       average_contour_distances=self._evaluate_metric(case, self._average_surface_distance),
+                       centerline_sensitivity=case.centerline_sensitivity,
+                       lumen_background_percentage = case.lumen_background_percentage,
+                       is_correct=True)
+
+    def _hausdorff_distance(self, predicted_points, contour_points):
+        distances, _ = predicted_points.query(contour_points, k=1)
+        return np.max(distances)
+
+    def _average_surface_distance(self, predicted_points, contour_points):
+        distances, _ = predicted_points.query(contour_points, k=1)
+        return np.mean(distances)
+
+    def _hausdorff_distance_95(self, predicted_points, contour_points):
+        distances, _ = predicted_points.query(contour_points, k=1)
+        return np.percentile(distances, 95)
+
+    def _evaluate_metric(self, case, metric):
+        metrics = {}
+        for class_label in self._classes:
+            if class_label == DatasetInfo.BACKGROUND:
+                metrics[class_label] = np.inf
+            if class_label == DatasetInfo.WALL:
+                metrics[class_label] = metric(case.outer_mesh_tree, case.true_outer_wall_points())
+            if class_label == DatasetInfo.LUMEN:
+                metrics[class_label] = metric(case.lumen_mesh_tree, case.true_lumen_points())
+        return metrics
+
+
 class SegmentationEvaluator2DContourOn3DLabel:
     def __init__(self, dataset_config):
         self._classes = dataset_config.classes
@@ -23,6 +61,7 @@ class SegmentationEvaluator2DContourOn3DLabel:
                        hausdorff_distances_95=self._evaluate_metric(truth, case, self._hausdorff_distance_95),
                        average_contour_distances=self._evaluate_metric(truth, case, self._average_surface_distance),
                        centerline_sensitivity=case.centerline_sensitivity,
+                       lumen_background_percentage = case.lumen_background_percentage,
                        is_correct=True)
 
     def _hausdorff_distance(self, predicted_points, contour_points):
@@ -75,6 +114,7 @@ class SegmentationEvaluator2DContourOn2DCrossSections:
                        hausdorff_distances_95=hausdorff_distances_95,
                        average_contour_distances=mean_contour_distances,
                        centerline_sensitivity=np.nan,
+                       lumen_background_percentage = np.nan,
                        is_correct=is_correct)
 
     def evaluate_dice_coefficients(self, truth, prediction):

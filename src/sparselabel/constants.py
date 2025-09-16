@@ -22,6 +22,7 @@ class DatasetInfo:
     LUMEN = "Lumen"
     WALL = "Wall"
     IGNORE = "ignore"
+    CHANNELS = "channel_names"
 
 
 class Endings:

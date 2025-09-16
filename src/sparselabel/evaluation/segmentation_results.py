@@ -52,6 +52,9 @@ class SegmentationResults:
 
     def centerline_sensitivities(self):
         return [result.centerline_sensitivity for result in self.valid_results]
+    
+    def lumen_background_percentages(self):
+        return [result.lumen_background_percentage for result in self.valid_results]
 
     def _convert_to_serializable(self, obj):
         if isinstance(obj, dict):

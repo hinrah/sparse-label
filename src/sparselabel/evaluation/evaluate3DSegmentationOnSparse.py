@@ -43,12 +43,50 @@ class EvaluationProcessor:
             self._process_one_item_parallel(case)
 
 
-def evaluate_segmentations(dataset_config, num_threads, evaluator):
+class CaseWiseProcessor:
+    lock = Lock()
+
+    def __init__(self, case_loader, manager, evaluator, with_wall=True):
+        self.segmentation_results = manager.list()
+        self._case_loader = case_loader
+        self._evaluator = evaluator
+        self._with_wall = with_wall
+
+    def _is_valid_evaluation_case(self, case):
+        if case.true_lumen_points() is None:
+            return False
+        if self._with_wall and case.true_outer_wall_points() is None:
+            return False
+        return True
+
+    def _process_one_item_parallel(self, case):
+        if not self._is_valid_evaluation_case(case):
+            return
+        segmentation_result = self._evaluator.evaluate(case)
+        with self.lock:
+            self.segmentation_results.append(segmentation_result)
+
+    def process_parallel(self, num_threads=4):
+        with Pool(processes=num_threads) as pool, tqdm(total=len(self._case_loader)) as pbar:
+            for _ in pool.imap(self._process_one_item_parallel, self._case_loader):
+                pbar.update()
+                pbar.refresh()
+
+    def process_synchronous(self):
+        for case in tqdm(self._case_loader):
+            self._process_one_item_parallel(case)
+
+
+
+def evaluate_segmentations(dataset_config, num_threads, evaluator, complete_case = False):
     manager = Manager()
 
     case_loader = CaseLoader(dataset_config, EvaluationCase)
 
-    processor = EvaluationProcessor(case_loader, manager, evaluator, with_wall=dataset_config.has_wall)
+    if complete_case: #todo clean this mess up
+        processor = CaseWiseProcessor(case_loader, manager, evaluator, with_wall=dataset_config.has_wall)
+    else:
+        processor = EvaluationProcessor(case_loader, manager, evaluator, with_wall=dataset_config.has_wall)
 
     if num_threads <= 1:
         processor.process_synchronous()

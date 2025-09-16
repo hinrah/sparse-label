@@ -10,4 +10,5 @@ class Metrics:
     hausdorff_distances_95: dict
     average_contour_distances: dict
     centerline_sensitivity: Union[float, None]
+    lumen_background_percentage: Union[float, None]
     is_correct: bool
