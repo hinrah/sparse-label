@@ -77,13 +77,12 @@ class CaseWiseProcessor:
             self._process_one_item_parallel(case)
 
 
-
-def evaluate_segmentations(dataset_config, num_threads, evaluator, complete_case = False):
+def evaluate_segmentations(dataset_config, num_threads, evaluator, complete_case=False):
     manager = Manager()
 
     case_loader = CaseLoader(dataset_config, EvaluationCase)
 
-    if complete_case: #todo clean this mess up
+    if complete_case:
         processor = CaseWiseProcessor(case_loader, manager, evaluator, with_wall=dataset_config.has_wall)
     else:
         processor = EvaluationProcessor(case_loader, manager, evaluator, with_wall=dataset_config.has_wall)

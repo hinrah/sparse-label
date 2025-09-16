@@ -60,7 +60,7 @@ class EvaluationCase:  # pylint: disable=too-many-instance-attributes
     @property
     def prediction_volume(self):
         return self.prediction.get_fdata().squeeze()
-    
+
     @property
     def channel_image(self):
         return self._case.channel_image
@@ -111,9 +111,8 @@ class EvaluationCase:  # pylint: disable=too-many-instance-attributes
                 outer_wall_points.append(cross_section.outer_wall_points)
         if outer_wall_points:
             return np.vstack(outer_wall_points)
-        else:
-            return None
-    
+        return None
+
     def true_lumen_points(self):
         lumen_points = []
         for cross_section in self.cross_sections:
@@ -121,8 +120,7 @@ class EvaluationCase:  # pylint: disable=too-many-instance-attributes
                 lumen_points.append(cross_section.lumen_points)
         if lumen_points:
             return np.vstack(lumen_points)
-        else:
-            return None
+        return None
 
     def _filter_for_points_in_image(self, points):
         points_h = homogenous(points)
@@ -177,34 +175,34 @@ class EvaluationCase:  # pylint: disable=too-many-instance-attributes
         verts_w = de_homgenize(verts_h @ self.prediction.affine.T)
 
         return trimesh.Trimesh(vertices=verts_w, faces=faces, vertex_normals=normals)
-    
+
     @property
     def lumen_background_percentage(self):
         if self._lumen_background_percentage is None:
             self._compute_lumen_background_percentage()
         return self._lumen_background_percentage
-    
+
     def _compute_lumen_background_percentage(self):
         lumen = self.prediction_volume == self.dataset_config.lumen_value
         non_lumen = self.prediction_volume != self.dataset_config.lumen_value
         background = self.prediction_volume == self.dataset_config.background_value
 
-        structure = np.zeros((3, 3, 3), dtype=bool) 
-        structure[1,1,1] = 1
-        structure[0,1,1] = 1
-        structure[1,0,1] = 1
-        structure[1,1,0] = 1
-        structure[2,1,1] = 1
-        structure[1,2,1] = 1
-        structure[1,1,2] = 1
+        structure = np.zeros((3, 3, 3), dtype=bool)
+        structure[1, 1, 1] = 1
+        structure[0, 1, 1] = 1
+        structure[1, 0, 1] = 1
+        structure[1, 1, 0] = 1
+        structure[2, 1, 1] = 1
+        structure[1, 2, 1] = 1
+        structure[1, 1, 2] = 1
 
         dilated_lumen = binary_dilation(lumen, structure=structure)
 
         touching_background = dilated_lumen & background
         touching = dilated_lumen & non_lumen
-        
-        self._lumen_background_percentage =  np.sum(touching_background)/np.sum(touching)
-        
+
+        self._lumen_background_percentage = np.sum(touching_background) / np.sum(touching)
+
 
 class Case:
     def __init__(self, case_id, dataset_config):
@@ -252,7 +250,6 @@ class Case:
             images.append(nib.load(image_path).get_fdata().squeeze())
 
         self.channel_image = np.stack(images)
-
 
     def _load_centerline(self):
         file_name = self.case_id + Endings.JSON

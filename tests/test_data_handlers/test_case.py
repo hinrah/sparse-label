@@ -19,12 +19,14 @@ class TestClassCase(TestCase):
         mock_load_cross_sections.assert_not_called()
         mock_load_centerline.assert_not_called()
 
+    @patch.object(Case, '_load_channel_image')
     @patch.object(Case, '_load_image')
     @patch.object(Case, '_load_cross_sections')
     @patch.object(Case, '_load_centerline')
-    def test_load(self, mock_load_centerline, mock_load_cross_sections, mock_load_image):
+    def test_load(self, mock_load_centerline, mock_load_cross_sections, mock_load_image, mock_load_channel_image):
         case = Case('test_case', 'test_dataset')
         case.load()
+        mock_load_channel_image.assert_called_once()
         mock_load_image.assert_called_once()
         mock_load_cross_sections.assert_called_once()
         mock_load_centerline.assert_called_once()

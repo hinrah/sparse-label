@@ -8,8 +8,10 @@ import pandas as pd
 from sparselabel.constants import ENCODING
 from sparselabel.dataset_config import DatasetConfig
 from sparselabel.evaluation.evaluate3DSegmentationOnSparse import evaluate_segmentations
-from sparselabel.evaluation.segmentation_evaluator import SegmentationEvaluator2DContourOn3DLabel, SegmentationEvaluator2DContourOn2DCrossSections, SegmentationEvaluatorAllContoursOn3DLabel
-from sparselabel.evaluation.parameter_extractor import ParameterExtractorBBMRI
+from sparselabel.evaluation.segmentation_evaluator import SegmentationEvaluator2DContourOn3DLabel, SegmentationEvaluator2DContourOn2DCrossSections, \
+    SegmentationEvaluatorAllContoursOn3DLabel
+from sparselabel.evaluation.parameter_extractor import ParameterExtractor
+
 
 def save_results_to_csv(path_to_save, metrics):
     metrics_data = {
@@ -74,7 +76,9 @@ def main():
         elif args.e == "2D_BBMRI":
             complete_case = False
             size = int(args.fow_2d // args.res_2d)
-            evaluator = ParameterExtractorBBMRI(dataset_config, (args.res_2d, args.res_2d), (size, size))
+            evaluator = ParameterExtractor(dataset_config, (args.res_2d, args.res_2d), (size, size))
+        else:
+            raise RuntimeError(f"Evaluator {args.e} is not implemented.")
         segmentation_results = evaluate_segmentations(dataset_config, args.n, evaluator, complete_case)
         with open(os.path.join(dataset_config.prediction_path, f"evaluation_results_{args.e}.json"), "w", encoding=ENCODING) as file:
             json.dump(segmentation_results.to_json(), file)

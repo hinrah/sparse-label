@@ -12,6 +12,8 @@ from sparselabel.data_handlers.cross_section import CrossSection
 from sparselabel.evaluation.metrics import Metrics
 
 
+# pylint: disable=too-many-locals, duplicate-code
+
 class SegmentationEvaluatorAllContoursOn3DLabel:
     def __init__(self, dataset_config):
         self._classes = dataset_config.classes
@@ -23,7 +25,7 @@ class SegmentationEvaluatorAllContoursOn3DLabel:
                        hausdorff_distances_95=self._evaluate_metric(case, self._hausdorff_distance_95),
                        average_contour_distances=self._evaluate_metric(case, self._average_surface_distance),
                        centerline_sensitivity=case.centerline_sensitivity,
-                       lumen_background_percentage = case.lumen_background_percentage,
+                       lumen_background_percentage=case.lumen_background_percentage,
                        is_correct=True)
 
     def _hausdorff_distance(self, predicted_points, contour_points):
@@ -61,7 +63,7 @@ class SegmentationEvaluator2DContourOn3DLabel:
                        hausdorff_distances_95=self._evaluate_metric(truth, case, self._hausdorff_distance_95),
                        average_contour_distances=self._evaluate_metric(truth, case, self._average_surface_distance),
                        centerline_sensitivity=case.centerline_sensitivity,
-                       lumen_background_percentage = case.lumen_background_percentage,
+                       lumen_background_percentage=case.lumen_background_percentage,
                        is_correct=True)
 
     def _hausdorff_distance(self, predicted_points, contour_points):
@@ -114,7 +116,7 @@ class SegmentationEvaluator2DContourOn2DCrossSections:
                        hausdorff_distances_95=hausdorff_distances_95,
                        average_contour_distances=mean_contour_distances,
                        centerline_sensitivity=np.nan,
-                       lumen_background_percentage = np.nan,
+                       lumen_background_percentage=np.nan,
                        is_correct=is_correct)
 
     def evaluate_dice_coefficients(self, truth, prediction):

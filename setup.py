@@ -9,6 +9,8 @@ setup(
     author_email='hinrich.rahlfs@dhzc-charite.de',
     packages=find_packages(),
     install_requires=[
+        'pingouin',
+        'pandas',
         'numpy',
         'tqdm',
         'nibabel',
