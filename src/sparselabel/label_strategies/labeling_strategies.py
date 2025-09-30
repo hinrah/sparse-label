@@ -3,7 +3,7 @@ import numpy as np
 from scipy.spatial import cKDTree
 
 from sparselabel.data_handlers.cross_section import ContourDoesNotExistError
-from sparselabel.data_handlers.cross_section_centerline import CrossSectionCenterline
+from sparselabel.data_handlers.cross_section_centerline import CrossSectionScopeClassifier
 from sparselabel.data_handlers.mask_image import UNPROCESSED
 
 
@@ -14,7 +14,7 @@ class LabelCrossSection:
         self._with_wall = with_wall
         self._cross_section = cross_section
         self._mask = mask
-        self._centerline = CrossSectionCenterline(centerline, cross_section)
+        self._centerline = CrossSectionScopeClassifier(centerline, cross_section)
         self.__label_idx = None
         self.__labels = None
         self.__label_points = None
@@ -41,7 +41,7 @@ class LabelCrossSection:
 
     def _label_background(self):
         labels_with_background = np.where(self._labels == UNPROCESSED, self._dataset_config.background_value, self._labels)
-        self.__labels = np.where(self._centerline.belong_to_centerline(self._label_points, radius=np.inf), labels_with_background, self._labels)
+        self.__labels = np.where(self._centerline.are_points_within_cross_section_scope(self._label_points, radius=np.inf), labels_with_background, self._labels)
 
     @property
     def _label_idx(self):

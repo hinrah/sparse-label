@@ -14,7 +14,7 @@ class Edge:
     def intersections(self, cross_section):
         distances = cross_section.distance_to_plane(self.skeletons)
         plane_points = self.skeletons[np.nonzero(distances < self._skeleton_sampling_distance)[0]]
-        #return list(plane_points)
+        return list(plane_points)
         in_lumen_intersection = []
         out_lumen_intersection = []
         if plane_points.size == 0:

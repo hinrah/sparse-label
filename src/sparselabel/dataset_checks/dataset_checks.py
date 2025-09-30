@@ -2,7 +2,7 @@ import networkx as nx
 from networkx import DiGraph
 
 from sparselabel.data_handlers.cross_section import ContourDoesNotExistError
-from sparselabel.data_handlers.cross_section_centerline import CrossSectionCenterline
+from sparselabel.data_handlers.cross_section_centerline import CrossSectionScopeClassifier
 
 
 class DataErrorNotAllDataUsable(Exception):
@@ -19,7 +19,7 @@ class CenterlineInsideLumen:
 
     def check(self, case):
         for cross_section in case.cross_sections:
-            centerline = CrossSectionCenterline(case.centerline, cross_section)
+            centerline = CrossSectionScopeClassifier(case.centerline, cross_section)
             if not centerline.has_valid_centerline():
                 raise DataErrorThatLeadsToWrongLabels(
                     "case {} has no centerline that is inside the lumen of cross_section {}.".format(case.case_id, cross_section.identifier))
