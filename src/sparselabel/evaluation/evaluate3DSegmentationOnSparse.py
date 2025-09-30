@@ -3,7 +3,7 @@ from multiprocessing.pool import Pool
 
 from tqdm import tqdm
 
-from sparselabel.data_handlers.case import EvaluationCase
+from sparselabel.data_handlers.evaluation_case import EvaluationCase
 from sparselabel.case_loader import CaseLoader
 from sparselabel.evaluation.segmentation_results import SegmentationResults
 
@@ -18,7 +18,7 @@ class EvaluationProcessor:
         self._with_wall = with_wall
 
     def _is_valid_evaluation_cross_section(self, cross_section):
-        if cross_section.lumen_points is None:
+        if cross_section.inner_contour_points is None:
             return False
         if self._with_wall and cross_section.outer_wall_points is None:
             return False

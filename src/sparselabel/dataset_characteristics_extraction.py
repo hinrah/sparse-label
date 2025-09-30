@@ -1,4 +1,5 @@
 import numpy as np
+from scipy.spatial import cKDTree
 
 
 def get_max_voxel_size(cases):
@@ -24,10 +25,20 @@ def get_min_lumen_centerline_distance(cases):
     min_lumen_centerline_distances = []
     for case in cases:
         try:
-            min_lumen_centerline_distances.append(case.min_lumen_centerline_distance())
+            min_lumen_centerline_distances.append(_min_lumen_centerline_distance_one_case(case))
         except ValueError:
             continue
     return np.percentile(min_lumen_centerline_distances, 5)
+
+
+def _min_lumen_centerline_distance_one_case(case):
+    centerline_points = case.all_centerline_points()
+    lumen_points = case.all_inner_contour_points()
+    if not centerline_points.size or not lumen_points.size:
+        raise ValueError()
+    centerline_tree = cKDTree(centerline_points)
+    distances, _ = centerline_tree.query(lumen_points, k=1)
+    return min(distances)
 
 
 def get_max_contour_centerline_distance(cases):

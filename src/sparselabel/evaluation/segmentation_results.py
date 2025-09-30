@@ -18,18 +18,6 @@ class SegmentationResults:
     def num_invalid_results(self):
         return len(self._results) - len(self.valid_results)
 
-    @property
-    def mean_dice_coefficients(self):
-        return [np.mean(list(result.dice_coefficients.values())) for result in self.valid_results]
-
-    @property
-    def mean_hausdorff_distance(self):
-        return [np.mean(list(result.hausdorff_distances.values())) for result in self.valid_results]
-
-    @property
-    def mean_average_contour_distances(self):
-        return [np.mean(list(result.average_contour_distances.values())) for result in self.valid_results]
-
     def dice_coefficients(self, class_value=None):
         if class_value:
             return [result.dice_coefficients.get(class_value, 0) for result in self.valid_results]

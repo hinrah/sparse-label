@@ -45,7 +45,7 @@ class CrossSectionWithoutLumenContour:
 
     def check(self, case):
         for cross_section in case.cross_sections:
-            if cross_section.lumen_points is None:
+            if cross_section.inner_contour_points is None:
                 raise DataErrorNotAllDataUsable("case {} has a cross_section without a lumen contour.".format(case.case_id))
 
 

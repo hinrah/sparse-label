@@ -29,7 +29,7 @@ class TestCrossSection(unittest.TestCase):
         np.testing.assert_array_equal(expected_points, self.cross_section.all_contour_points)
 
     def test_lumen_points(self):
-        np.testing.assert_array_equal(self.lumen_contour, self.cross_section.lumen_points)
+        np.testing.assert_array_equal(self.lumen_contour, self.cross_section.inner_contour_points)
 
     def test_outer_wall_points(self):
         np.testing.assert_array_equal(self.outer_wall_contour, self.cross_section.outer_wall_points)

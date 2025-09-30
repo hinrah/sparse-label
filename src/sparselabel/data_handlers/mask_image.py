@@ -1,5 +1,7 @@
 import numpy as np
 
+from sparselabel.utils import transform_points
+
 UNPROCESSED = -1
 
 
@@ -37,8 +39,7 @@ class SparseMaskImage:
         x, y, z = np.meshgrid(x, y, z, indexing='ij')
 
         voxels = np.stack((x, y, z), axis=-1).reshape((-1, 3))
-        voxels_h = homogenous(voxels)
-        voxels_w = de_homgenize(voxels_h @ self._affine.T)
+        voxels_w = transform_points(voxels, self._affine)
         return voxels_w
 
     @property
@@ -54,11 +55,3 @@ class SparseMaskImage:
             raise RuntimeError("The mask does not fit the mask shape")
 
         self.set_sparse_mask(range(mask.size), mask)
-
-
-def homogenous(points):
-    return np.hstack((points, np.ones((points.shape[0], 1))))
-
-
-def de_homgenize(points):
-    return points[:, :3]
