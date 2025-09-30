@@ -2,8 +2,6 @@ import json
 import os
 import unittest
 
-import numpy as np
-
 from sparselabel.constants import ENCODING, DatasetInfo
 from sparselabel.evaluation.segmentation_results import SegmentationResults
 
@@ -11,12 +9,14 @@ from sparselabel.evaluation.segmentation_results import SegmentationResults
 class TestDatasetConfig(unittest.TestCase):
 
     def test_evaluate_label_3D(self):
-        with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "test_data_results", "Dataset001_test", "expected_segmentation_results", "segmentation_results.json"), encoding=ENCODING) as file:
+        with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "test_data_results", "Dataset001_test", "expected_segmentation_results",
+                               "segmentation_results.json"), encoding=ENCODING) as file:
             segmentation_result = SegmentationResults()
             raw_segmentation_result = json.load(file)
             segmentation_result.from_json(raw_segmentation_result)
 
-        with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "test_data_results", "Dataset001_test", "expected_segmentation_results", "summarized_segmentation_results.json"), encoding=ENCODING) as file:
+        with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "test_data_results", "Dataset001_test", "expected_segmentation_results",
+                               "summarized_segmentation_results.json"), encoding=ENCODING) as file:
             expected_summarized_results = json.load(file)
 
         actual_summarized_results = {

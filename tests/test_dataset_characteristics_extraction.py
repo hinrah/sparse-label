@@ -3,9 +3,8 @@ from unittest.mock import MagicMock, patch
 
 import numpy as np
 
-from sparselabel.data_handlers.case import Case
 from sparselabel.dataset_characteristics_extraction import get_max_voxel_size, get_min_lumen_centerline_distance, get_max_contour_centerline_distance, \
-    get_median_voxel_size, _min_lumen_centerline_distance_one_case
+    get_median_voxel_size, min_lumen_centerline_distance_one_case
 
 
 class TestDatasetCharacteristicsExtraction(unittest.TestCase):
@@ -34,13 +33,13 @@ class TestDatasetCharacteristicsExtraction(unittest.TestCase):
         with self.assertRaises(ValueError):
             get_median_voxel_size([])
 
-    @patch('sparselabel.dataset_characteristics_extraction._min_lumen_centerline_distance_one_case')
+    @patch('sparselabel.dataset_characteristics_extraction.min_lumen_centerline_distance_one_case')
     def test_get_min_lumen_centerline_distance(self, mock_min_lumen_centerline_distance_one_case):
         mock_min_lumen_centerline_distance_one_case.side_effect = [1.0] * 10 + [2.0] * 100
 
         self.assertEqual(1.0, get_min_lumen_centerline_distance([MagicMock()] * 110))
 
-    @patch('sparselabel.dataset_characteristics_extraction._min_lumen_centerline_distance_one_case')
+    @patch('sparselabel.dataset_characteristics_extraction.min_lumen_centerline_distance_one_case')
     def test_get_min_lumen_centerline_distance_very_few_cases(self, mock_min_lumen_centerline_distance_one_case):
         mock_min_lumen_centerline_distance_one_case.side_effect = [1.0] * 2 + [2.0] * 100
 
@@ -50,7 +49,7 @@ class TestDatasetCharacteristicsExtraction(unittest.TestCase):
         case = MagicMock()
         case.all_centerline_points.return_value = np.array([[0, 0, 0], [1, 1, 1], [2, 2, 2]])
         case.all_inner_contour_points.return_value = np.array([[1, 1, 1], [3, 3, 3]])
-        result = _min_lumen_centerline_distance_one_case(case)
+        result = min_lumen_centerline_distance_one_case(case)
         self.assertEqual(result, 0.0)
 
     def test_min_lumen_centerline_distance(self):
@@ -58,7 +57,7 @@ class TestDatasetCharacteristicsExtraction(unittest.TestCase):
         case.all_centerline_points.return_value = np.array([[0, 0, 1], [2, 2, 1], [3, 2, 2]])
         case.all_inner_contour_points.return_value = np.array([[0, 0, 0], [7, 7, 7]])
 
-        result = _min_lumen_centerline_distance_one_case(case)
+        result = min_lumen_centerline_distance_one_case(case)
         self.assertEqual(result, 1.0)
 
     def test_min_lumen_centerline_distance_with_empty_points(self):
@@ -74,7 +73,7 @@ class TestDatasetCharacteristicsExtraction(unittest.TestCase):
                 case.all_inner_contour_points.return_value = inner_contour_points
 
                 with self.assertRaises(ValueError):
-                    _min_lumen_centerline_distance_one_case(case)
+                    min_lumen_centerline_distance_one_case(case)
 
     def test_get_min_lumen_centerline_distance_no_valid_cases(self):
         case1 = MagicMock()

@@ -41,7 +41,8 @@ class LabelCrossSection:
 
     def _label_background(self):
         labels_with_background = np.where(self._labels == UNPROCESSED, self._dataset_config.background_value, self._labels)
-        self.__labels = np.where(self._centerline.are_points_within_cross_section_scope(self._label_points, radius=np.inf), labels_with_background, self._labels)
+        self.__labels = np.where(self._centerline.are_points_within_cross_section_scope(self._label_points, radius=np.inf),
+                                 labels_with_background, self._labels)
 
     @property
     def _label_idx(self):

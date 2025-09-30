@@ -78,4 +78,3 @@ class TestDefaultLabelCreator(TestCase):
             shutil.rmtree(os.path.join(self.test_dir, "test_data", "Dataset003_test_self_intersection", "labelsTr"))
         except FileNotFoundError:
             pass
-

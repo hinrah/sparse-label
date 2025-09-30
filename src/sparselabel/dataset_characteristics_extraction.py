@@ -25,13 +25,13 @@ def get_min_lumen_centerline_distance(cases):
     min_lumen_centerline_distances = []
     for case in cases:
         try:
-            min_lumen_centerline_distances.append(_min_lumen_centerline_distance_one_case(case))
+            min_lumen_centerline_distances.append(min_lumen_centerline_distance_one_case(case))
         except ValueError:
             continue
     return np.percentile(min_lumen_centerline_distances, 5)
 
 
-def _min_lumen_centerline_distance_one_case(case):
+def min_lumen_centerline_distance_one_case(case):
     centerline_points = case.all_centerline_points()
     lumen_points = case.all_inner_contour_points()
     if not centerline_points.size or not lumen_points.size:

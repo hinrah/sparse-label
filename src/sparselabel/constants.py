@@ -41,6 +41,7 @@ class Evaluation:
     SEED = 1337
     SURFACE_SAMPLING = 10000000
 
+
 class EnvironmentVars:
     sparse_vessel_masks_raw = "sparseVesselMasks_raw"
     sparse_vessel_masks_results = "sparseVesselMasks_results"
