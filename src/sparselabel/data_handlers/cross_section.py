@@ -21,7 +21,7 @@ class CrossSection:
         else:
             self._outer_wall_contour = None
 
-    def lumen_is_inside_wall(self) -> bool:
+    def inner_contour_inside_outer_contour(self) -> bool:
         if self._outer_wall_contour is None:
             raise ContourDoesNotExistError
         return self._outer_wall_contour.contains(self._inner_contour.polygon)

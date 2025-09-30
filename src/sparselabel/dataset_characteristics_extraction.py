@@ -28,7 +28,7 @@ def get_min_lumen_centerline_distance(cases):
             min_lumen_centerline_distances.append(min_lumen_centerline_distance_one_case(case))
         except ValueError:
             continue
-    return np.percentile(min_lumen_centerline_distances, 5)
+    return min(min_lumen_centerline_distances)
 
 
 def min_lumen_centerline_distance_one_case(case):

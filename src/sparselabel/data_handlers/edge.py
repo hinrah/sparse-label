@@ -5,7 +5,7 @@ from sparselabel.data_handlers.cross_section import CrossSection
 
 class Edge:
     """
-        Represents the edge between to nodes a centerline graph.
+        Represents the edge between to nodes a centerline graph. An edge also contains the skeletons points, i.e. the path between two graph nodes.
 
         Attributes:
             skeletons (numpy.ndarray): Ordered point on the path of the edge.

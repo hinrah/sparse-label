@@ -9,8 +9,8 @@ from sparselabel.constants import EnvironmentVars, Folders, DatasetInfo, ENCODIN
 class DatasetConfig:
     def __init__(self, dataset_name, folder_postfix="Tr",
                  prediction_sub_path=os.path.join("nnUNetTrainer__nnUNetPlans__3d_fullres", "crossval_results_folds_0_1_2_3_4")):
-        self.data_raw = self._get_from_environment_variable(EnvironmentVars.sparse_vessel_masks_raw, EnvironmentVars.nnunet_raw)
-        self.data_results = self._get_from_environment_variable(EnvironmentVars.sparse_vessel_masks_results, EnvironmentVars.nnunet_results)
+        self.data_raw = self._read_from_environment_variable_with_fallback(EnvironmentVars.sparse_vessel_masks_raw, EnvironmentVars.nnunet_raw)
+        self.data_results = self._read_from_environment_variable_with_fallback(EnvironmentVars.sparse_vessel_masks_results, EnvironmentVars.nnunet_results)
         self._folder_postfix = folder_postfix
         self._prediction_sub_path = prediction_sub_path
         try:
@@ -38,7 +38,7 @@ class DatasetConfig:
 
         return Path(datasets[0]).name
 
-    def _get_from_environment_variable(self, first_choice, second_choice):
+    def _read_from_environment_variable_with_fallback(self, first_choice, second_choice):
         result = os.environ.get(first_choice)
         if result is None:
             print(f"{first_choice} is not defined {second_choice} is now used.")
@@ -113,4 +113,4 @@ class DatasetConfig:
 
     @property
     def channels(self):
-        return self._dataset_info[DatasetInfo.CHANNELS]
+        return self.dataset_info[DatasetInfo.CHANNELS]

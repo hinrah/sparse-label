@@ -4,15 +4,8 @@ ENCODING = "ascii"
 class Folders:
     IMAGES = "images"
     LABELS = "labels"
-    PREDICTIONS = "predictions"
     CENTERLINES = "centerlines"
     CONTOURS = "contours"
-    DEFAULT_TRAINER = "nnUNetTrainer"
-    DEFAULT_CONFIG = "3d_fullres"
-    DEFAULT_PLANS = "nnUNetPlans"
-    SEPERATOR = "__"
-    CROSS_VALIDATION_RESULTS = "crossval_results_folds_0_1_2_3_4"
-    POSTPROCESSED = "postprocessed"
 
 
 class DatasetInfo:
@@ -23,6 +16,10 @@ class DatasetInfo:
     WALL = "Wall"
     IGNORE = "ignore"
     CHANNELS = "channel_names"
+
+
+class LabelStrategies:
+    CONSIDERED_AREA_FACTOR = 1.1
 
 
 class Endings:

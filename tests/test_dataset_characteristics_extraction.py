@@ -35,15 +35,9 @@ class TestDatasetCharacteristicsExtraction(unittest.TestCase):
 
     @patch('sparselabel.dataset_characteristics_extraction.min_lumen_centerline_distance_one_case')
     def test_get_min_lumen_centerline_distance(self, mock_min_lumen_centerline_distance_one_case):
-        mock_min_lumen_centerline_distance_one_case.side_effect = [1.0] * 10 + [2.0] * 100
+        mock_min_lumen_centerline_distance_one_case.side_effect = [1.0, 0.5, 2.0]
 
-        self.assertEqual(1.0, get_min_lumen_centerline_distance([MagicMock()] * 110))
-
-    @patch('sparselabel.dataset_characteristics_extraction.min_lumen_centerline_distance_one_case')
-    def test_get_min_lumen_centerline_distance_very_few_cases(self, mock_min_lumen_centerline_distance_one_case):
-        mock_min_lumen_centerline_distance_one_case.side_effect = [1.0] * 2 + [2.0] * 100
-
-        self.assertEqual(2.0, get_min_lumen_centerline_distance([MagicMock()] * 102))
+        self.assertEqual(0.5, get_min_lumen_centerline_distance([MagicMock()] * 3))
 
     def test_min_lumen_centerline_distance_zero(self):
         case = MagicMock()
@@ -79,7 +73,7 @@ class TestDatasetCharacteristicsExtraction(unittest.TestCase):
         case1 = MagicMock()
         case1.min_lumen_centerline_distance.side_effect = ValueError
         cases = [case1]
-        with self.assertRaises(IndexError):
+        with self.assertRaises(ValueError):
             get_min_lumen_centerline_distance(cases)
 
     def test_get_max_contour_centerline_distance(self):

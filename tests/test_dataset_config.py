@@ -7,7 +7,7 @@ from sparselabel.constants import Folders, DatasetInfo
 
 class TestDatasetConfig(unittest.TestCase):
 
-    @patch('sparselabel.dataset_config.DatasetConfig._get_from_environment_variable')
+    @patch('sparselabel.dataset_config.DatasetConfig._read_from_environment_variable_with_fallback')
     def setUp(self, mock_get_env_var):  # pylint: disable=arguments-differ
         mock_get_env_var.side_effect = ['mocked_data_raw', 'mocked_data_results']
         self.dataset_config = DatasetConfig('test_dataset')

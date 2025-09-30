@@ -12,10 +12,10 @@ from sparselabel.data_handlers.case import Case
 from sparselabel.utils import transform_points
 
 
-class EvaluationCase:  # pylint: disable=too-many-instance-attributes
+class EvaluationCase:
     def __init__(self, case_id, dataset_config):
         self._centerline_sensitivity = None
-        self._lumen_background_percentage = None
+        self._lumen_coverage_rate = None
         self.case_id = case_id
         self.dataset_config = dataset_config
         self.prediction = None
@@ -145,11 +145,11 @@ class EvaluationCase:  # pylint: disable=too-many-instance-attributes
 
     @property
     def lumen_background_percentage(self):
-        if self._lumen_background_percentage is None:
-            self._compute_lumen_background_percentage()
-        return self._lumen_background_percentage
+        if self._lumen_coverage_rate is None:
+            self._compute_lumen_coverage_rate()
+        return self._lumen_coverage_rate
 
-    def _compute_lumen_background_percentage(self):
+    def _compute_lumen_coverage_rate(self):
         lumen = self.prediction_volume == self.dataset_config.lumen_value
         non_lumen = self.prediction_volume != self.dataset_config.lumen_value
         background = self.prediction_volume == self.dataset_config.background_value
@@ -168,4 +168,4 @@ class EvaluationCase:  # pylint: disable=too-many-instance-attributes
         touching_background = dilated_lumen & background
         touching = dilated_lumen & non_lumen
 
-        self._lumen_background_percentage = np.sum(touching_background) / np.sum(touching)
+        self._lumen_coverage_rate = np.sum(touching_background) / np.sum(touching)

@@ -19,10 +19,11 @@ class SparseMaskImage:
         return np.where(out == UNPROCESSED, self._dataset_config.ignore_value, out)
 
     def set_sparse_mask(self, idx, label):
-        label = np.where(label == UNPROCESSED, self._mask[idx], label)  # needed to make ensure unprocessed labels are not overwriting processed labels
-        self._mask[idx] = np.where(self._mask[idx] == UNPROCESSED, label, self._mask[idx])
-        label = np.where(self._mask[idx] == self._dataset_config.ignore_value, self._dataset_config.ignore_value, label)
-        self._mask[idx] = np.where(self._mask[idx] == label, label, self._dataset_config.ignore_value)
+        processed_idx = idx[np.where(label != UNPROCESSED)[0]]
+        processed_labels = label[np.where(label != UNPROCESSED)[0]]
+
+        self._mask[processed_idx] = np.where(self._mask[processed_idx] == UNPROCESSED, processed_labels, self._mask[processed_idx])
+        self._mask[processed_idx] = np.where(self._mask[processed_idx] != processed_labels, self._dataset_config.ignore_value, self._mask[processed_idx])
 
     @property
     def affine(self):
@@ -54,4 +55,4 @@ class SparseMaskImage:
         if mask.shape != self._mask.shape:
             raise RuntimeError("The mask does not fit the mask shape")
 
-        self.set_sparse_mask(range(mask.size), mask)
+        self.set_sparse_mask(np.arange(mask.size), mask)
