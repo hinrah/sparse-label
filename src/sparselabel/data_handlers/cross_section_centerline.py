@@ -33,40 +33,36 @@ class CrossSectionScopeClassifier:
 
         for edge in self.edges():
             intersections = edge.intersections(self._cross_section)
-            in_lumen, out_lumen = self._are_intersection_inside_lumen(intersections)
-
-            if in_lumen and not out_lumen:
-                cross_section_skeletons.extend(edge.skeletons)
-            elif not in_lumen:
+            intersections_inside_lumen = self._are_intersection_inside_lumen(intersections)
+            if not intersections or np.sum(intersections_inside_lumen) == 0:
                 distant_skeletons.extend(edge.skeletons)
-            else:
-                self._classify_mixed_skeletons(edge, in_lumen, out_lumen, cross_section_skeletons, distant_skeletons)
+            elif np.all(intersections_inside_lumen):
+                cross_section_skeletons.extend(edge.skeletons)
+            else:  # edge is curved and intersects the plane inside and outside the lumen, e.g. aorta with an axial plane
+                in_lumen_intersections = list(np.array(intersections)[intersections_inside_lumen])
+                out_lumen_intersections = list(np.array(intersections)[~intersections_inside_lumen])
+                distance_to_in_lumen = self._distance_pointcloud_to_points(edge.skeletons, in_lumen_intersections)
+                distance_to_out_lumen = self._distance_pointcloud_to_points(edge.skeletons, out_lumen_intersections)
+
+                distant_skeletons.extend(edge.skeletons[np.nonzero(distance_to_out_lumen < distance_to_in_lumen)])
+                cross_section_skeletons.extend(edge.skeletons[np.nonzero(distance_to_out_lumen >= distance_to_in_lumen)])
 
         self.__cross_section_skeletons = cKDTree(np.vstack(cross_section_skeletons))
         self.__distant_skeletons = cKDTree(np.vstack(distant_skeletons))
 
+    def _distance_pointcloud_to_points(self, points_a, points_b):
+        search_tree = cKDTree(np.vstack(points_b))
+        distance, _ = search_tree.query(points_a)
+        return distance
+
     def _are_intersection_inside_lumen(self, intersections):
-        in_lumen, out_lumen = [], []
-        if intersections:
-            for point in intersections:
-                if self._cross_section.is_projected_inside_lumen(point):
-                    in_lumen.append(point)
-                else:
-                    out_lumen.append(point)
-        return in_lumen, out_lumen
-
-    def _classify_mixed_skeletons(self, edge, in_lumen, out_lumen, cross_section_skeletons, distant_skeletons):
-        in_lumen_tree = cKDTree(np.vstack(in_lumen))
-        out_lumen_tree = cKDTree(np.vstack(out_lumen))
-        distance_in_lumen, _ = in_lumen_tree.query(edge.skeletons)
-        distance_out_lumen, _ = out_lumen_tree.query(edge.skeletons)
-
-        distant_skeletons.extend(
-            edge.skeletons[np.nonzero(distance_out_lumen < distance_in_lumen)]
-        )
-        cross_section_skeletons.extend(
-            edge.skeletons[np.nonzero(distance_out_lumen >= distance_in_lumen)]
-        )
+        is_in_lumen = []
+        for point in intersections:
+            if self._cross_section.is_projected_inside_lumen(point):
+                is_in_lumen.append(True)
+            else:
+                is_in_lumen.append(False)
+        return np.array(is_in_lumen)
 
     def edges(self):
         for start, end in self._centerline.edges():
