@@ -48,5 +48,33 @@ class TestDefaultLabelCreator(TestCase):
                 np.testing.assert_array_equal(true_labels.get_fdata(), expected_result.get_fdata())
                 np.testing.assert_array_equal(true_labels.affine, expected_result.affine)
 
+    def test_create_label_self_intersection(self):
+        dataset_config = DatasetConfig("Dataset003_test_self_intersection")
+        dataset_config.data_raw = os.path.join(os.path.dirname(os.path.abspath(__file__)), "test_data")
+
+        strategies = [LabelCrossSections(dataset_config, 2, with_wall=False, radius=50),
+                      LabelCenterline(dataset_config, 3, dataset_config.lumen_value),
+                      LabelCenterline(dataset_config, 40, dataset_config.background_value)]
+
+        all_without_wall_label = nib.load(os.path.join(dataset_config.raw_path, "expected_labels", "test_self_intersection.nii.gz"))
+
+        label_creator = LabelCreator(strategies, dataset_config)
+
+        test_case = Case("test_self_intersection", dataset_config)
+        test_case.load()
+
+        label_creator.apply(test_case)
+
+        true_labels = nib.load(os.path.join(dataset_config.labels_path, "test_self_intersection.nii.gz"))
+        np.testing.assert_array_equal(true_labels.get_fdata(), all_without_wall_label.get_fdata())
+        np.testing.assert_array_equal(true_labels.affine, all_without_wall_label.affine)
+
     def tearDown(self) -> None:
-        shutil.rmtree(os.path.join(self.test_dir, "test_data", "Dataset001_test", "labelsTr"))
+        try:
+            shutil.rmtree(os.path.join(self.test_dir, "test_data", "Dataset001_test", "labelsTr"))
+        except FileNotFoundError:
+            pass
+        try:
+            shutil.rmtree(os.path.join(self.test_dir, "test_data", "Dataset003_test_self_intersection", "labelsTr"))
+        except FileNotFoundError:
+            pass

@@ -17,19 +17,19 @@ class TestCrossSection(unittest.TestCase):
         self.cross_section = CrossSection(self.dataset_config, 'test_id', self.lumen_contour, self.outer_wall_contour)
 
     def test_lumen_is_inside_wall(self):
-        self.assertTrue(self.cross_section.lumen_is_inside_wall())
+        self.assertTrue(self.cross_section.inner_contour_inside_outer_contour())
 
     def test_lumen_is_inside_wall_no_outer_wall(self):
         cross_section = CrossSection(self.dataset_config, 'test_id', self.lumen_contour)
         with self.assertRaises(ContourDoesNotExistError):
-            cross_section.lumen_is_inside_wall()
+            cross_section.inner_contour_inside_outer_contour()
 
     def test_all_contour_points(self):
         expected_points = np.vstack((self.lumen_contour, self.outer_wall_contour))
         np.testing.assert_array_equal(expected_points, self.cross_section.all_contour_points)
 
     def test_lumen_points(self):
-        np.testing.assert_array_equal(self.lumen_contour, self.cross_section.lumen_points)
+        np.testing.assert_array_equal(self.lumen_contour, self.cross_section.inner_contour_points)
 
     def test_outer_wall_points(self):
         np.testing.assert_array_equal(self.outer_wall_contour, self.cross_section.outer_wall_points)

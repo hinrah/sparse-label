@@ -24,14 +24,14 @@ class ParameterExtractor:
         mpr = np.round(self._mpr(truth, case.prediction_volume, case.prediction.affine)).astype(int)
         relevant_mask = self._cut_mask_between_lumen(mpr)
         vessel_wall_thickness = self.measure_vessel_wall_thickness(relevant_mask)
-        vessel_wall_thickness_manual = self.contour_based_wall_thickness(truth.lumen_points, truth._outer_wall_contour_points)
+        vessel_wall_thickness_manual = self.contour_based_wall_thickness(truth.inner_contour_points, truth._outer_wall_contour_points)
 
         manual_mask = truth.create_pixel_mask(self._mpr_resolution, self._mpr_shape)
         lumen_diameter = self.lumen_diameter(relevant_mask)
         lumen_diameter_manual = self.lumen_diameter(manual_mask)
 
-        if case.channel_image.shape[0] == 4:
-            velocity = case.channel_image[1:]
+        if case.image_data.shape[0] == 4:
+            velocity = case.image_data[1:]
             throughplane_component = np.tensordot(truth.plane_normal, velocity, axes=(0, 0))[0]
             throughplane_mpr = self._mpr(truth, throughplane_component, case.prediction.affine)
             max_vel = self.max_vel(relevant_mask, throughplane_mpr)
@@ -83,8 +83,8 @@ class ParameterExtractor:
         return 2 * np.sqrt(area / np.pi)
 
     def _mpr(self, cross_section, volume, affine):
-        x_axis = cross_section.plane_x_axis()
-        y_axis = cross_section.plane_y_axis()
+        x_axis = cross_section.plane_x_axis
+        y_axis = cross_section.plane_y_axis
 
         x_vals = (np.arange(self._mpr_shape[0]) - self._mpr_shape[0] / 2) * self._mpr_resolution[0]
         y_vals = (np.arange(self._mpr_shape[1]) - self._mpr_shape[1] / 2) * self._mpr_resolution[0]

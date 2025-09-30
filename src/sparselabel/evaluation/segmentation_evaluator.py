@@ -48,7 +48,7 @@ class SegmentationEvaluatorAllContoursOn3DLabel:
             if class_label == DatasetInfo.WALL:
                 metrics[class_label] = metric(case.outer_mesh_tree, case.true_outer_wall_points())
             if class_label == DatasetInfo.LUMEN:
-                metrics[class_label] = metric(case.lumen_mesh_tree, case.true_lumen_points())
+                metrics[class_label] = metric(case.inner_mesh_tree, case.true_lumen_points())
         return metrics
 
 
@@ -86,7 +86,7 @@ class SegmentationEvaluator2DContourOn3DLabel:
             if class_label == DatasetInfo.WALL:
                 metrics[class_label] = metric(case.outer_mesh_tree, truth.outer_wall_points)
             if class_label == DatasetInfo.LUMEN:
-                metrics[class_label] = metric(case.lumen_mesh_tree, truth.lumen_points)
+                metrics[class_label] = metric(case.inner_mesh_tree, truth.inner_contour_points)
         return metrics
 
 
@@ -167,8 +167,8 @@ class SegmentationEvaluator2DContourOn2DCrossSections:
         return mean_contour_distances
 
     def _mpr(self, cross_section, case):
-        x_axis = cross_section.plane_x_axis()
-        y_axis = cross_section.plane_y_axis()
+        x_axis = cross_section.plane_x_axis
+        y_axis = cross_section.plane_y_axis
 
         x_vals = (np.arange(self._mpr_shape[0]) - self._mpr_shape[0] / 2) * self._mpr_resolution[0]
         y_vals = (np.arange(self._mpr_shape[1]) - self._mpr_shape[1] / 2) * self._mpr_resolution[0]

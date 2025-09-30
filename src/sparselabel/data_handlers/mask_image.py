@@ -1,5 +1,7 @@
 import numpy as np
 
+from sparselabel.utils import transform_points
+
 UNPROCESSED = -1
 
 
@@ -17,10 +19,11 @@ class SparseMaskImage:
         return np.where(out == UNPROCESSED, self._dataset_config.ignore_value, out)
 
     def set_sparse_mask(self, idx, label):
-        label = np.where(label == UNPROCESSED, self._mask[idx], label)  # needed to make ensure unprocessed labels are not overwriting processed labels
-        self._mask[idx] = np.where(self._mask[idx] == UNPROCESSED, label, self._mask[idx])
-        label = np.where(self._mask[idx] == self._dataset_config.ignore_value, self._dataset_config.ignore_value, label)
-        self._mask[idx] = np.where(self._mask[idx] == label, label, self._dataset_config.ignore_value)
+        processed_idx = idx[np.where(label != UNPROCESSED)[0]]
+        processed_labels = label[np.where(label != UNPROCESSED)[0]]
+
+        self._mask[processed_idx] = np.where(self._mask[processed_idx] == UNPROCESSED, processed_labels, self._mask[processed_idx])
+        self._mask[processed_idx] = np.where(self._mask[processed_idx] != processed_labels, self._dataset_config.ignore_value, self._mask[processed_idx])
 
     @property
     def affine(self):
@@ -37,8 +40,7 @@ class SparseMaskImage:
         x, y, z = np.meshgrid(x, y, z, indexing='ij')
 
         voxels = np.stack((x, y, z), axis=-1).reshape((-1, 3))
-        voxels_h = homogenous(voxels)
-        voxels_w = de_homgenize(voxels_h @ self._affine.T)
+        voxels_w = transform_points(voxels, self._affine)
         return voxels_w
 
     @property
@@ -53,12 +55,4 @@ class SparseMaskImage:
         if mask.shape != self._mask.shape:
             raise RuntimeError("The mask does not fit the mask shape")
 
-        self.set_sparse_mask(range(mask.size), mask)
-
-
-def homogenous(points):
-    return np.hstack((points, np.ones((points.shape[0], 1))))
-
-
-def de_homgenize(points):
-    return points[:, :3]
+        self.set_sparse_mask(np.arange(mask.size), mask)

@@ -1,0 +1,28 @@
+[
+  {
+    "identifier": "test",
+    "dice_coefficients": {
+      "background": NaN,
+      "Wall": NaN,
+      "Lumen": NaN
+    },
+    "hausdorff_distances": {
+      "background": Infinity,
+      "Wall": 0.8528083861638509,
+      "Lumen": 0.8181688758866821
+    },
+    "hausdorff_distances_95": {
+      "background": Infinity,
+      "Wall": 0.49415057253442374,
+      "Lumen": 0.35349899466060986
+    },
+    "average_contour_distances": {
+      "background": Infinity,
+      "Wall": 0.14448054069444796,
+      "Lumen": 0.1366124407320245
+    },
+    "centerline_sensitivity": 0.9622641509433962,
+    "lumen_background_percentage": 0.02702702702702703,
+    "is_correct": true
+  }
+]
