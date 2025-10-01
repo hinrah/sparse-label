@@ -38,7 +38,7 @@ def create_sparse_label():
     args = parser.parse_args()
 
     if args.checkDataset:
-        check_dataset()
+        check_dataset(args)
 
     dataset_config = DatasetConfig(args.d)
 
@@ -78,12 +78,8 @@ def create_sparse_label():
         processor.process()
 
 
-def check_dataset():
+def check_dataset(args):
     logger.setLevel("INFO")
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-d', help="[REQUIRED] dataset name (folder name) for which the label creation is performed.")
-    parser.add_argument('-n', default=1, type=int, help="[OPTIONAL] number of processes. If not set this will run synchronous on one process.")
-    args = parser.parse_args()
 
     tests = [CenterlineInsideInnerContour(), InnerContourWithinOuter()]
     dataset_config = DatasetConfig(args.d)
