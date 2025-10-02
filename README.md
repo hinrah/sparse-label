@@ -133,6 +133,6 @@ Gotkowski, Karol, et al. *"Embarrassingly simple scribble supervision for 3D med
 Isensee, Fabian, et al. *"nnU-Net: a self-configuring method for deep learning-based biomedical image segmentation."* *Nature Methods* 18.2 (2021): 203-211.
 
 # License
-The code in this repository is licensed under the GNU-GPL license.  
+The code in this repository is licensed under the GNU-GPL v.3 license.  
 The annotations in `/example_dataset/` were created using a subset of the TotalSegmentator MRI dataset (https://zenodo.org/records/14710732) and are licensed under the CC BY-NC-SA 4.0 License.  
 (https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en)
