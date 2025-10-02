@@ -37,6 +37,9 @@ def create_sparse_label():
                         help="[OPTIONAL] Run basic checks on the validity of the dataset before creating the labels.")
     args = parser.parse_args()
 
+    logger.setLevel("INFO")
+    logger.info("Starting to Create Sparse Labels")
+
     if args.checkDataset:
         check_dataset(args)
 
@@ -46,7 +49,6 @@ def create_sparse_label():
 
     max_voxel_size = None
 
-    print(1)
     if not args.t:
         if max_voxel_size is None:
             max_voxel_size = get_max_voxel_size(case_loader)

@@ -44,7 +44,7 @@ class DatasetConfig:
             print(f"{first_choice} is not defined {second_choice} is now used.")
             result = os.environ.get(second_choice)
             if result is None:
-                print(f"{second_choice} is not defined as well. Sparse vessel masks can not be created.")
+                print(f"{second_choice} is not defined as well.")
 
         return result
 
