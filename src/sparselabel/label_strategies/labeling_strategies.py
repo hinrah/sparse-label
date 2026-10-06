@@ -52,8 +52,15 @@ class LabelCrossSection:
             self._label_foreground()
             self._label_background()
             self._mask.set_sparse_mask(self._considered_voxel_indices, self._labels)
+            self._clear_memory()
         except ContourDoesNotExistError:
             pass
+    
+    def _clear_memory(self):
+        self.__considered_voxel_indices = None
+        self.__labels = None
+        self.__label_points = None
+        self.__potential_foreground_idx = None
 
     def _label_foreground(self):
         potential_foreground_points = self._label_points[self._potential_foreground_idx]
@@ -120,8 +127,11 @@ class LabelCenterline(LabelingStrategy):
             out = np.where(distance > self._radius, self._dataset_config.background_value, UNPROCESSED).reshape(-1, 1)
         else:
             raise NotImplementedError
-
-        mask.set_mask(out)
+        
+        try:
+            mask.set_mask(out)
+        except RuntimeError:
+            raise RuntimeError(case.case_id)
 
     @staticmethod
     def create_centerline_distance_tree(case):
