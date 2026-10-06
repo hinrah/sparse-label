@@ -10,11 +10,13 @@ from skimage import measure
 from sparselabel.constants import Endings, Evaluation
 from sparselabel.data_handlers.case import Case
 from sparselabel.utils import transform_points
+from skimage.morphology import skeletonize
 
 
 class EvaluationCase:
     def __init__(self, case_id, dataset_config):
         self._centerline_sensitivity = None
+        self._centerline_HD = None
         self._lumen_coverage_rate = None
         self.case_id = case_id
         self.dataset_config = dataset_config
@@ -129,11 +131,29 @@ class EvaluationCase:
             self._centerline_sensitivity = self._calculate_centerline_sensitivity()
         return self._centerline_sensitivity
 
+    @property
+    def centerline_HD(self):
+        if self._centerline_HD is None:
+            self._centerline_HD = self._calculate_centerline_HD()
+        return self._centerline_HD
+
+    def _predicted_skeletons(self):
+        mask = self.prediction_volume == self.dataset_config.lumen_value
+        skel = skeletonize(mask, method="lee")          
+        ijk = np.argwhere(skel)           
+        xyz = transform_points(ijk, self._case.affine)
+        return xyz
+                
     def _calculate_centerline_sensitivity(self):
         points_v = transform_points(self.all_centerline_points(), np.linalg.inv(self._case.affine))
         points_v = np.round(points_v).astype(np.int16)
         inside_lumen = np.sum(self.prediction_volume[points_v[:, 0], points_v[:, 1], points_v[:, 2]] == self.dataset_config.lumen_value)
         return inside_lumen / points_v.shape[0]
+
+    def _calculate_centerline_HD(self):
+        skel = self._predicted_skeletons()
+        cl = self.all_centerline_points()
+        return max(scipy.spatial.distance.directed_hausdorff(skel, cl)[0], scipy.spatial.distance.directed_hausdorff(cl, skel)[0])
 
     def _get_mesh(self, label_values):
         binary_prediction = np.isin(self.prediction_volume, label_values)

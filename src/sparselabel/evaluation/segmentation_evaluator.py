@@ -25,6 +25,7 @@ class SegmentationEvaluatorAllContoursOn3DLabel:
                        hausdorff_distances_95=self._evaluate_metric(case, self._hausdorff_distance_95),
                        average_contour_distances=self._evaluate_metric(case, self._average_surface_distance),
                        centerline_sensitivity=case.centerline_sensitivity,
+                       centerline_HD=case.centerline_HD,
                        lumen_background_percentage=case.lumen_background_percentage,
                        is_correct=True)
 
@@ -63,6 +64,7 @@ class SegmentationEvaluator2DContourOn3DLabel:
                        hausdorff_distances_95=self._evaluate_metric(truth, case, self._hausdorff_distance_95),
                        average_contour_distances=self._evaluate_metric(truth, case, self._average_surface_distance),
                        centerline_sensitivity=case.centerline_sensitivity,
+                       centerline_HD=case.centerline_HD,
                        lumen_background_percentage=case.lumen_background_percentage,
                        is_correct=True)
 
@@ -116,6 +118,7 @@ class SegmentationEvaluator2DContourOn2DCrossSections:
                        hausdorff_distances_95=hausdorff_distances_95,
                        average_contour_distances=mean_contour_distances,
                        centerline_sensitivity=np.nan,
+                       centerline_HD=np.nan,
                        lumen_background_percentage=np.nan,
                        is_correct=is_correct)
 

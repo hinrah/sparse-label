@@ -152,30 +152,6 @@ def unit_level(df: pd.DataFrame, metrics=None, unit: str = "subject_id",
     per_case = df.groupby(["config", unit, case], observed=True)[metrics].mean()
     return per_case.groupby(level=["config", unit], observed=True).mean()
 
-# --------------------------------------------------------------------------- #
-# case-level aggregation (for the paired Wilcoxon tests)
-# --------------------------------------------------------------------------- #
-def case_level(df: pd.DataFrame, metrics=None, unit: str = "subject_id",
-               case: str = "case_id") -> pd.DataFrame:
-    """Backwards-compatible alias of `unit_level` (now two-stage)."""
-    return unit_level(df, metrics, unit=unit, case=case)
-
-# --------------------------------------------------------------------------- #
-# cluster bootstrap: mean over cross-sections, resampling units
-# --------------------------------------------------------------------------- #
-def cluster_frames(df, metrics, case_wise=CASE_WISE_METRICS, unit="case_id"):
-    """Per (config, unit) sum and count, so that a mean over cross-sections is
-    sum(sums) / sum(counts).  Case-wise metrics are collapsed to one value."""
-    metrics = [k for k in metrics if k in df.columns]
-    g = df.groupby(["config", unit], observed=True)[metrics]
-    total, count = g.sum(min_count=1), g.count().astype(float)
-
-    cw = [k for k in case_wise if k in metrics]
-    if cw:
-        total[cw] = total[cw] / count[cw].replace(0.0, np.nan)   # case mean
-        count[cw] = (count[cw] > 0).astype(float)                # weight 1 per case
-    return total.fillna(0.0), count.fillna(0.0)
-
 def bootstrap_weights(units, n_boot=N_BOOT, seed=SEED) -> np.ndarray:
     """(n_boot, n_units) multiplicities of a bootstrap over units."""
     rng = np.random.default_rng(seed)
@@ -191,13 +167,6 @@ def _unit_matrix(level, cfg, units, metrics):
 def _unit_means(vals, mask, w) -> np.ndarray:
     """Unweighted mean over (resampled) units, ignoring missing values."""
     num, den = w @ vals, w @ mask
-    with np.errstate(invalid="ignore", divide="ignore"):
-        return np.where(den > 0, num / den, np.nan)
-
-def _means(total, count, units, metrics, w) -> np.ndarray:
-    a = np.nan_to_num(total.reindex(units)[metrics].to_numpy(float))
-    c = np.nan_to_num(count.reindex(units)[metrics].to_numpy(float))
-    num, den = w @ a, w @ c
     with np.errstate(invalid="ignore", divide="ignore"):
         return np.where(den > 0, num / den, np.nan)
 
@@ -295,28 +264,6 @@ def descriptive_summary(df, metrics=None, case_wise=None, unit="subject_id",
     metrics = available_metrics(df, metrics)
     level = unit_level(df, metrics, unit=unit, case=case)
     return _quant(level.groupby("config", observed=True)[metrics], metrics)
-
-
-def summarise(case: pd.DataFrame, order=None, quantiles: bool = True,
-              metrics=None) -> pd.DataFrame:
-    """Per-config mean / sd / 95 % CI (+ median/quartiles) and n_cases."""
-    metrics = [k for k in (METRICS if metrics is None else metrics) if k in case.columns]
-    g = case.groupby("config", observed=True)[metrics]
-    mean, sd, n = g.mean(), g.std(ddof=1), g.size()
-    lo, hi = t.interval(1 - ALPHA, df=(n.to_numpy() - 1)[:, None],
-                        loc=mean.to_numpy(), scale=g.sem().to_numpy())
-    parts = [mean, sd.add_suffix("_sd"),
-             pd.DataFrame(lo, mean.index, [f"{k}_lo" for k in metrics]),
-             pd.DataFrame(hi, mean.index, [f"{k}_hi" for k in metrics])]
-    if quantiles:
-        q25, q75 = g.quantile(0.25), g.quantile(0.75)
-        parts += [g.median().add_suffix("_median"),
-                  q25.add_suffix("_q25"), q75.add_suffix("_q75"),
-                  pd.DataFrame(q75.to_numpy() - q25.to_numpy(), mean.index,
-                               [f"{k}_iqr" for k in metrics])]
-    out = pd.concat(parts, axis=1)
-    out.insert(0, "n_cases", n)
-    return out if order is None else out.loc[list(order)]
 
 
 # --------------------------------------------------------------------------- #
